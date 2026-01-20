@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestione Coordinato</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f5f5f5; max-width: 1200px; margin: 0 auto; }
+h1 { color: #333; margin-bottom: 20px; }
+h2 { color: #555; margin-top: 30px; margin-bottom: 15px; }
+h3 { color: #666; margin-top: 15px; margin-bottom: 10px; }
+.section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.hidden { display: none; }
+.form-group { margin-bottom: 15px; }
+label { display: inline-block; margin-bottom: 5px; font-weight: 500; }
+input[type="text"], input[type="number"], textarea { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+textarea { width: 100%; min-height: 120px; font-family: monospace; }
+button { padding: 10px 20px; margin-right: 8px; margin-top: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; }
+.btn-primary { background:#4CAF50; color:white; }
+.btn-secondary { background:#2196F3; color:white; }
+.btn-danger { background:#f44336; color:white; }
+.btn-warning { background:#ff9800; color:white; }
+.card { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 12px; border-radius: 6px; background-color: #fafafa; }
+.card-title { font-weight: bold; margin-bottom: 8px; }
+.stats { background-color: #e8f5e9; padding: 15px; border-radius: 6px; border-left: 4px solid #4CAF50; }
+.checkbox-inline { display: inline-flex; align-items: center; margin-right: 15px; }
+.link-assign { margin: 8px 0; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background: #fdfdfd; }
+</style>
+</head>
+<body>
+
+<h1>🎯 Gestione Coordinato</h1>
+
+<div class="section">
+<h2>➕ Aggiungi attaccante</h2>
+<div class="form-group">
+<label>Nome</label><br>
+<input id="nome" type="text">
+</div>
+<div class="form-group">
+<label>OFF disponibile</label><br>
+<input id="off" type="number">
+</div>
+<h3>Argento disponibile</h3>
+<div class="form-group">
+<label class="checkbox-inline">
+<input type="checkbox" id="chkCitta" onchange="toggleQty('citta')"> Città
+</label>
+<input id="cittaQty" type="number" class="hidden" placeholder="Quantità">
+</div>
+<div class="form-group">
+<label class="checkbox-inline">
+<input type="checkbox" id="chkPiazzaForte" onchange="toggleQty('piazzaForte')"> PiazzaForte
+</label>
+<input id="piazzaForteQty" type="number" class="hidden" placeholder="Quantità">
+</div>
+<div class="form-group">
+<label class="checkbox-inline">
+<input type="checkbox" id="chkCastello" onchange="toggleQty('castello')"> Castello
+</label>
+<input id="castelloQty" type="number" class="hidden" placeholder="Quantità">
+</div>
+<button class="btn-primary" onclick="salvaAttaccante()">Aggiungi</button>
+</div>
+
+<div class="section">
+<h2>👥 Attaccanti</h2>
+<button class="btn-danger" onclick="resetTutto()">Resetta tutto</button>
+<div id="listaAttaccanti"></div>
+</div>
+
+<div class="section">
+<h3>📊 Truppe disponibili totali</h3>
+<div id="truppeDisponibili" class="stats"></div>
+</div>
+
+<div class="section">
+<h2>⚙️ Truppe necessarie per link</h2>
+Città <input id="truppeCitta" type="number"><br><br>
+PiazzaForte <input id="truppePiazzaForte" type="number"><br><br>
+Castello <input id="truppeCastello" type="number">
+</div>
+
+<div class="section">
+<h2>🔗 Inserisci link</h2>
+<textarea id="linkInput"></textarea><br>
+<button class="btn-primary" onclick="analizzaLink()">Analizza</button>
+<button class="btn-secondary" onclick="assegnaLink()">Assegna</button>
+</div>
+
+<div class="section">
+<h2>📑 Link</h2>
+<div id="listaLink"></div>
+</div>
+
+<script>
+/* Elementi */
+const nome = document.getElementById("nome");
+const off = document.getElementById("off");
+const chkCitta = document.getElementById("chkCitta");
+const cittaQty = document.getElementById("cittaQty");
+const chkPiazzaForte = document.getElementById("chkPiazzaForte");
+const piazzaForteQty = document.getElementById("piazzaForteQty");
+const chkCastello = document.getElementById("chkCastello");
+const castelloQty = document.getElementById("castelloQty");
+const listaAttaccanti = document.getElementById("listaAttaccanti");
+const truppeDisponibili = document.getElementById("truppeDisponibili");
+const linkInput = document.getElementById("linkInput");
+const listaLink = document.getElementById("listaLink");
+const truppeCittaInput = document.getElementById("truppeCitta");
+const truppePiazzaInput = document.getElementById("truppePiazzaForte");
+const truppeCastelloInput = document.getElementById("truppeCastello");
+
+let attaccanti = [];
+let linkList = [];
+
+/* --- FUNZIONI --- */
+function toggleQty(tipo){
+  const map = { castello:"castelloQty", piazzaForte:"piazzaForteQty", citta:"cittaQty" };
+  const el = document.getElementById(map[tipo]);
+  if(el) el.classList.toggle("hidden");
+}
+
+function pulisciForm(){
+  nome.value = "";
+  off.value = "";
+  chkCitta.checked = false;
+  chkPiazzaForte.checked = false;
+  chkCastello.checked = false;
+  cittaQty.value = piazzaForteQty.value = castelloQty.value = "";
+  cittaQty.classList.add("hidden");
+  piazzaForteQty.classList.add("hidden");
+  castelloQty.classList.add("hidden");
+}
+
+function salvaAttaccante(){
+  const att = {
+    nome: nome.value,
+    off: Number(off.value)||0,
+    argento:{
+      citta: chkCitta.checked ? Number(cittaQty.value)||0 :0,
+      piazzaForte: chkPiazzaForte.checked ? Number(piazzaForteQty.value)||0 :0,
+      castello: chkCastello.checked ? Number(castelloQty.value)||0 :0
+    }
+  };
+  att.soloBuffer = (att.argento.citta===0 && att.argento.piazzaForte===0 && att.argento.castello===0);
+  attaccanti.unshift(att);
+  mostraAttaccanti();
+  aggiornaTotali();
+  pulisciForm();
+  salvaLocalStorage();
+}
+
+function mostraAttaccanti(){
+  listaAttaccanti.innerHTML = attaccanti.map((a,i)=>`
+    <div class="card">
+      <div class="card-title">${a.nome} ${a.soloBuffer?"(Buffer)":""}</div>
+      OFF: ${a.off}<br>
+      Argento → Città:${a.argento.citta} | PF:${a.argento.piazzaForte} | Cast:${a.argento.castello}<br>
+      <button class="btn-warning" onclick="modificaAttaccante(${i})">Modifica</button>
+      <button class="btn-danger" onclick="eliminaAttaccante(${i})">Elimina</button>
+    </div>`).join("");
+}
+
+function aggiornaTotali(){
+  const t = attaccanti.reduce((x,a)=>{
+    if(a.soloBuffer) return x;
+    return { off:x.off+a.off, c:x.c+a.argento.citta, p:x.p+a.argento.piazzaForte, ca:x.ca+a.argento.castello };
+  },{off:0,c:0,p:0,ca:0});
+  truppeDisponibili.innerHTML = `OFF ${t.off} | Città ${t.c} | PF ${t.p} | Castello ${t.ca}`;
+}
+
+function eliminaAttaccante(index){
+  if(confirm(`Eliminare ${attaccanti[index].nome}?`)){
+    attaccanti.splice(index,1);
+    mostraAttaccanti();
+    aggiornaTotali();
+    salvaLocalStorage();
+  }
+}
+
+function modificaAttaccante(index){
+  const a = attaccanti[index];
+  nome.value = a.nome;
+  off.value = a.off;
+  chkCitta.checked = a.argento.citta>0; cittaQty.classList.toggle("hidden", !chkCitta.checked); cittaQty.value = a.argento.citta;
+  chkPiazzaForte.checked = a.argento.piazzaForte>0; piazzaForteQty.classList.toggle("hidden", !chkPiazzaForte.checked); piazzaForteQty.value = a.argento.piazzaForte;
+  chkCastello.checked = a.argento.castello>0; castelloQty.classList.toggle("hidden", !chkCastello.checked); castelloQty.value = a.argento.castello;
+  const btn = document.querySelector(".btn-primary");
+  btn.textContent = "Aggiorna";
+  btn.onclick = function(){
+    attaccanti[index] = {
+      nome: nome.value,
+      off: Number(off.value)||0,
+      argento:{
+        citta: chkCitta.checked ? Number(cittaQty.value)||0:0,
+        piazzaForte: chkPiazzaForte.checked ? Number(piazzaForteQty.value)||0:0,
+        castello: chkCastello.checked ? Number(castelloQty.value)||0:0
+      }
+    };
+    attaccanti[index].soloBuffer = (attaccanti[index].argento.citta===0 && attaccanti[index].argento.piazzaForte===0 && attaccanti[index].argento.castello===0);
+    btn.textContent = "Aggiungi";
+    btn.onclick = salvaAttaccante;
+    mostraAttaccanti();
+    aggiornaTotali();
+    pulisciForm();
+    salvaLocalStorage();
+  };
+}
+
+function analizzaLink(){
+  linkInput.value.split("\n").forEach(r=>{
+    if(!r.trim()) return;
+    let tipo=null;
+    if(r.toLowerCase().includes("citt")) tipo="citta";
+    if(r.toLowerCase().includes("piazza")) tipo="piazzaForte";
+    if(r.toLowerCase().includes("castello")) tipo="castello";
+    if(tipo) linkList.push({url:r,tipo,assegnato:0});
+  });
+  mostraLink();
+  salvaLocalStorage();
+}
+
+function mostraLink(){
+  listaLink.innerHTML = linkList.map((l,i)=>`
+    <div class="card link-assign">
+      <b>${i+1}) ${l.tipo.toUpperCase()}</b> → Truppe assegnate: ${l.assegnato}<br>${l.url}
+    </div>`).join("");
+}
+
+function assegnaLink(){
+  const richieste = { citta: Number(truppeCittaInput.value)||0, piazzaForte: Number(truppePiazzaInput.value)||0, castello: Number(truppeCastelloInput.value)||0 };
+  const log = [];
+
+  for(let l of linkList){
+    let tipo = l.tipo;
+    let daAssegnare = richieste[tipo];
+    if(daAssegnare<=0) continue;
+    for(let a of attaccanti){
+      if(a.soloBuffer) continue;
+      let q = a.argento[tipo] || 0;
+      if(q>0 && daAssegnare>0){
+        let usati = Math.min(q, daAssegnare);
+        l.assegnato += usati; daAssegnare -= usati;
+        log.push(`${a.nome} copre ${usati} di ${tipo}`);
+      }
+    }
+  }
+
+  for(let l of linkList){
+    let tipo = l.tipo;
+    let daAssegnare = richieste[tipo] - l.assegnato;
+    if(daAssegnare<=0) continue;
+    for(let a of attaccanti){
+      if(!a.soloBuffer) continue;
+      if(a.off>0 && daAssegnare>0){
+        let usati = Math.min(a.off, daAssegnare);
+        l.assegnato += usati; daAssegnare -= usati;
+        log.push(`${a.nome} (Buffer) copre ${usati} di ${tipo}`);
+      }
+    }
+  }
+
+  mostraLink();
+  salvaLocalStorage();
+  alert("Assegnazione completata:\n" + log.join("\n"));
+}
+
+function salvaLocalStorage(){
+  const dati = {attaccanti, linkList, truppe:{citta:truppeCittaInput.value,piazza:truppePiazzaInput.value,castello:truppeCastelloInput.value}};
+  localStorage.setItem("gestioneCoordinato", JSON.stringify(dati));
+}
+
+function recuperaLocalStorage(){
+  const dati = JSON.parse(localStorage.getItem("gestioneCoordinato"));
+  if(dati){
+    if(confirm("Dati salvati trovati. Vuoi recuperarli?")){
+      attaccanti = dati.attaccanti || [];
+      linkList = dati.linkList || [];
+      truppeCittaInput.value = dati.truppe?.citta || 0;
+      truppePiazzaInput.value = dati.truppe?.piazza || 0;
+      truppeCastelloInput.value = dati.truppe?.castello || 0;
+      mostraAttaccanti(); aggiornaTotali(); mostraLink();
+    } else {
+      localStorage.removeItem("gestioneCoordinato");
+    }
+  }
+}
+
+function resetTutto(){
+  if(confirm("Vuoi resettare TUTTO e partire da zero?")){
+    attaccanti=[]; linkList=[];
+    truppeCittaInput.value=truppePiazzaInput.value=truppeCastelloInput.value="";
+    localStorage.removeItem("gestioneCoordinato");
+    mostraAttaccanti(); aggiornaTotali(); mostraLink();
+  }
+}
+
+setInterval(() => {
+  salvaLocalStorage();
+}, 5000);
+
+window.onload = recuperaLocalStorage;
+</script>
+
+</body>
+</html>
