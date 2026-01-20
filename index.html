@@ -4,305 +4,275 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gestione Coordinato</title>
+
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f5f5f5; max-width: 1200px; margin: 0 auto; }
-h1 { color: #333; margin-bottom: 20px; }
-h2 { color: #555; margin-top: 30px; margin-bottom: 15px; }
-h3 { color: #666; margin-top: 15px; margin-bottom: 10px; }
-.section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.hidden { display: none; }
-.form-group { margin-bottom: 15px; }
-label { display: inline-block; margin-bottom: 5px; font-weight: 500; }
-input[type="text"], input[type="number"], textarea { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
-textarea { width: 100%; min-height: 120px; font-family: monospace; }
-button { padding: 10px 20px; margin-right: 8px; margin-top: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; }
-.btn-primary { background:#4CAF50; color:white; }
-.btn-secondary { background:#2196F3; color:white; }
-.btn-danger { background:#f44336; color:white; }
-.btn-warning { background:#ff9800; color:white; }
-.card { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 12px; border-radius: 6px; background-color: #fafafa; }
-.card-title { font-weight: bold; margin-bottom: 8px; }
-.stats { background-color: #e8f5e9; padding: 15px; border-radius: 6px; border-left: 4px solid #4CAF50; }
-.checkbox-inline { display: inline-flex; align-items: center; margin-right: 15px; }
-.link-assign { margin: 8px 0; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background: #fdfdfd; }
+*{box-sizing:border-box}
+body{font-family:Segoe UI;padding:20px;background:#f5f5f5;max-width:1200px;margin:auto}
+.section{background:#fff;padding:20px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+h1,h2,h3{margin-bottom:10px}
+input,textarea{padding:8px;border:1px solid #ccc;border-radius:4px}
+textarea{width:100%;min-height:120px}
+button{padding:8px 15px;border:none;border-radius:4px;cursor:pointer;margin-top:5px}
+.btn-primary{background:#4CAF50;color:#fff}
+.btn-secondary{background:#2196F3;color:#fff}
+.btn-danger{background:#f44336;color:#fff}
+.card{border:1px solid #ddd;padding:10px;margin-bottom:8px;border-radius:5px;background:#fafafa}
+.hidden{display:none}
+.help{background:#2196F3;color:#fff;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}
+.tooltip{margin-top:6px;padding:8px;background:#eef5ff;border-left:4px solid #2196F3;border-radius:4px}
+.error{color:red;margin-top:5px;font-size:13px;}
 </style>
 </head>
+
 <body>
 
-<h1>🎯 Gestione Coordinato</h1>
+<h1>Gestione Coordinato</h1>
 
+<!-- Impatto principale -->
 <div class="section">
-<h2>➕ Aggiungi attaccante</h2>
-<div class="form-group">
-<label>Nome</label><br>
-<input id="nome" type="text">
+<h2>⏱️ Impatto principale</h2>
+Giorno <input id="giorno" placeholder="GG/MM"><div id="errGiorno" class="error hidden">Campo obbligatorio</div><br>
+Ora <input id="ora" placeholder="HH:MM"><div id="errOra" class="error hidden">Campo obbligatorio</div>
 </div>
-<div class="form-group">
-<label>OFF disponibile</label><br>
-<input id="off" type="number">
+
+<!-- Attaccanti -->
+<div class="section">
+<h2>➕ Aggiungi attaccante <span class="help" onclick="toggleHelp('h1')">?</span></h2>
+<div id="h1" class="tooltip hidden">Inserisci nome e truppe OFF disponibili.</div>
+
+Nome <input id="nome"><div id="errNome" class="error hidden">Campo obbligatorio</div><br><br>
+OFF <input id="off" type="number"><div id="errOff" class="error hidden">Campo obbligatorio</div><br><br>
+
+<h3>Argento disponibile <span class="help" onclick="toggleHelp('h2')">?</span></h3>
+<div id="h2" class="tooltip hidden">
+Segna cosa può prendere con l’argento.  
+Se non selezioni nulla → l’attaccante sarà usato come SUPPORTO.
 </div>
-<h3>Argento disponibile</h3>
-<div class="form-group">
-<label class="checkbox-inline">
-<input type="checkbox" id="chkCitta" onchange="toggleQty('citta')"> Città
-</label>
-<input id="cittaQty" type="number" class="hidden" placeholder="Quantità">
-</div>
-<div class="form-group">
-<label class="checkbox-inline">
-<input type="checkbox" id="chkPiazzaForte" onchange="toggleQty('piazzaForte')"> PiazzaForte
-</label>
-<input id="piazzaForteQty" type="number" class="hidden" placeholder="Quantità">
-</div>
-<div class="form-group">
-<label class="checkbox-inline">
-<input type="checkbox" id="chkCastello" onchange="toggleQty('castello')"> Castello
-</label>
-<input id="castelloQty" type="number" class="hidden" placeholder="Quantità">
-</div>
+
+<label><input type="checkbox" id="chkCitta" onchange="toggleQty('citta')"> Città</label>
+<input id="cittaQty" type="number" class="hidden"><br>
+<label><input type="checkbox" id="chkPiazza" onchange="toggleQty('piazza')"> PiazzaForte</label>
+<input id="piazzaQty" type="number" class="hidden"><br>
+<label><input type="checkbox" id="chkCastello" onchange="toggleQty('castello')"> Castello</label>
+<input id="castelloQty" type="number" class="hidden"><br><br>
+
 <button class="btn-primary" onclick="salvaAttaccante()">Aggiungi</button>
 </div>
 
 <div class="section">
 <h2>👥 Attaccanti</h2>
-<button class="btn-danger" onclick="resetTutto()">Resetta tutto</button>
 <div id="listaAttaccanti"></div>
 </div>
 
+<!-- Truppe necessarie -->
 <div class="section">
-<h3>📊 Truppe disponibili totali</h3>
-<div id="truppeDisponibili" class="stats"></div>
+<h2>⚙️ Truppe necessarie <span class="help" onclick="toggleHelp('h3')">?</span></h2>
+<div id="h3" class="tooltip hidden">Inserisci le truppe minime richieste per ogni habitat.</div>
+
+Città <input id="reqCitta" type="number"><div id="errReqCitta" class="error hidden">Campo obbligatorio</div><br><br>
+PiazzaForte <input id="reqPiazza" type="number"><div id="errReqPiazza" class="error hidden">Campo obbligatorio</div><br><br>
+Castello <input id="reqCastello" type="number"><div id="errReqCastello" class="error hidden">Campo obbligatorio</div>
 </div>
 
+<!-- Inserimento link principale -->
 <div class="section">
-<h2>⚙️ Truppe necessarie per link</h2>
-Città <input id="truppeCitta" type="number"><br><br>
-PiazzaForte <input id="truppePiazzaForte" type="number"><br><br>
-Castello <input id="truppeCastello" type="number">
-</div>
-
-<div class="section">
-<h2>🔗 Inserisci link</h2>
+<h2>🔗 Inserisci link <span class="help" onclick="toggleHelp('h4')">?</span></h2>
+<div id="h4" class="tooltip hidden">Inserisci un link per riga.</div>
 <textarea id="linkInput"></textarea><br>
 <button class="btn-primary" onclick="analizzaLink()">Analizza</button>
 <button class="btn-secondary" onclick="assegnaLink()">Assegna</button>
 </div>
 
+<!-- Nuovi link (solo giorno/ora) -->
 <div class="section">
-<h2>📑 Link</h2>
-<div id="listaLink"></div>
+<h2>🕒 Altri link (solo ora/giorno) <span class="help" onclick="toggleHelp('h5')">?</span></h2>
+<div id="h5" class="tooltip hidden">Questi link useranno tutti gli attaccanti già inseriti ma senza unità né argento.</div>
+<textarea id="linkFake"></textarea><br>
+Giorno <input id="giornoFake" placeholder="GG/MM"><div id="errGiornoFake" class="error hidden">Campo obbligatorio</div><br>
+Ora <input id="oraFake" placeholder="HH:MM"><div id="errOraFake" class="error hidden">Campo obbligatorio</div><br>
+<button class="btn-secondary" onclick="assegnaFake()">Assegna fake</button>
+</div>
+
+<!-- Lista target -->
+<div class="section">
+<h2>📑 Target</h2>
+<div id="listaLink"></div><br>
+<button class="btn-secondary" onclick="exportCoordinato()">📤 Export Tutto</button>
+<button class="btn-secondary" onclick="exportSoloReal()">📤 Export Real</button>
+<button class="btn-secondary" onclick="exportSoloFake()">📤 Export Fake</button>
 </div>
 
 <script>
-/* Elementi */
-const nome = document.getElementById("nome");
-const off = document.getElementById("off");
-const chkCitta = document.getElementById("chkCitta");
-const cittaQty = document.getElementById("cittaQty");
-const chkPiazzaForte = document.getElementById("chkPiazzaForte");
-const piazzaForteQty = document.getElementById("piazzaForteQty");
-const chkCastello = document.getElementById("chkCastello");
-const castelloQty = document.getElementById("castelloQty");
-const listaAttaccanti = document.getElementById("listaAttaccanti");
-const truppeDisponibili = document.getElementById("truppeDisponibili");
-const linkInput = document.getElementById("linkInput");
-const listaLink = document.getElementById("listaLink");
-const truppeCittaInput = document.getElementById("truppeCitta");
-const truppePiazzaInput = document.getElementById("truppePiazzaForte");
-const truppeCastelloInput = document.getElementById("truppeCastello");
+let attaccanti=[], linkList=[];
 
-let attaccanti = [];
-let linkList = [];
-
-/* --- FUNZIONI --- */
-function toggleQty(tipo){
-  const map = { castello:"castelloQty", piazzaForte:"piazzaForteQty", citta:"cittaQty" };
-  const el = document.getElementById(map[tipo]);
-  if(el) el.classList.toggle("hidden");
-}
-
-function pulisciForm(){
-  nome.value = "";
-  off.value = "";
-  chkCitta.checked = false;
-  chkPiazzaForte.checked = false;
-  chkCastello.checked = false;
-  cittaQty.value = piazzaForteQty.value = castelloQty.value = "";
-  cittaQty.classList.add("hidden");
-  piazzaForteQty.classList.add("hidden");
-  castelloQty.classList.add("hidden");
-}
+function toggleHelp(id){const e=document.getElementById(id); e.style.display=e.style.display==="block"?"none":"block";}
+function toggleQty(t){document.getElementById(t+"Qty").classList.toggle("hidden");}
+function resetError(id){document.getElementById(id).classList.add("hidden");document.getElementById(id.replace("err","")).classList.remove("error");}
 
 function salvaAttaccante(){
-  const att = {
-    nome: nome.value,
-    off: Number(off.value)||0,
-    argento:{
-      citta: chkCitta.checked ? Number(cittaQty.value)||0 :0,
-      piazzaForte: chkPiazzaForte.checked ? Number(piazzaForteQty.value)||0 :0,
-      castello: chkCastello.checked ? Number(castelloQty.value)||0 :0
-    }
-  };
-  att.soloBuffer = (att.argento.citta===0 && att.argento.piazzaForte===0 && att.argento.castello===0);
-  attaccanti.unshift(att);
+  ["errNome","errOff"].forEach(resetError);
+  let valid=true;
+  if(!nome.value){document.getElementById("errNome").classList.remove("hidden");nome.classList.add("error"); valid=false;}
+  if(!off.value){document.getElementById("errOff").classList.remove("hidden");off.classList.add("error"); valid=false;}
+  if(!valid) return;
+
+  const a={nome:nome.value, off:+off.value||0, argento:{
+    citta:chkCitta.checked?+cittaQty.value||0:0,
+    piazza:chkPiazza.checked?+piazzaQty.value||0:0,
+    castello:chkCastello.checked?+castelloQty.value||0:0
+  }};
+  a.supporto=!a.argento.citta&&!a.argento.piazza&&!a.argento.castello;
+  attaccanti.push(a);
   mostraAttaccanti();
-  aggiornaTotali();
-  pulisciForm();
-  salvaLocalStorage();
+  salva();
+
+  nome.value=""; off.value=""; 
+  chkCitta.checked=false; cittaQty.value=""; cittaQty.classList.add("hidden");
+  chkPiazza.checked=false; piazzaQty.value=""; piazzaQty.classList.add("hidden");
+  chkCastello.checked=false; castelloQty.value=""; castelloQty.classList.add("hidden");
 }
 
 function mostraAttaccanti(){
-  listaAttaccanti.innerHTML = attaccanti.map((a,i)=>`
+  listaAttaccanti.innerHTML=attaccanti.map(a=>`
     <div class="card">
-      <div class="card-title">${a.nome} ${a.soloBuffer?"(Buffer)":""}</div>
-      OFF: ${a.off}<br>
-      Argento → Città:${a.argento.citta} | PF:${a.argento.piazzaForte} | Cast:${a.argento.castello}<br>
-      <button class="btn-warning" onclick="modificaAttaccante(${i})">Modifica</button>
-      <button class="btn-danger" onclick="eliminaAttaccante(${i})">Elimina</button>
+      <b>${a.nome}</b> ${a.supporto?"(SUPPORTO)":""}<br>
+      OFF ${a.off}<br>
+      C:${a.argento.citta} PF:${a.argento.piazza} CA:${a.argento.castello}
     </div>`).join("");
-}
-
-function aggiornaTotali(){
-  const t = attaccanti.reduce((x,a)=>{
-    if(a.soloBuffer) return x;
-    return { off:x.off+a.off, c:x.c+a.argento.citta, p:x.p+a.argento.piazzaForte, ca:x.ca+a.argento.castello };
-  },{off:0,c:0,p:0,ca:0});
-  truppeDisponibili.innerHTML = `OFF ${t.off} | Città ${t.c} | PF ${t.p} | Castello ${t.ca}`;
-}
-
-function eliminaAttaccante(index){
-  if(confirm(`Eliminare ${attaccanti[index].nome}?`)){
-    attaccanti.splice(index,1);
-    mostraAttaccanti();
-    aggiornaTotali();
-    salvaLocalStorage();
-  }
-}
-
-function modificaAttaccante(index){
-  const a = attaccanti[index];
-  nome.value = a.nome;
-  off.value = a.off;
-  chkCitta.checked = a.argento.citta>0; cittaQty.classList.toggle("hidden", !chkCitta.checked); cittaQty.value = a.argento.citta;
-  chkPiazzaForte.checked = a.argento.piazzaForte>0; piazzaForteQty.classList.toggle("hidden", !chkPiazzaForte.checked); piazzaForteQty.value = a.argento.piazzaForte;
-  chkCastello.checked = a.argento.castello>0; castelloQty.classList.toggle("hidden", !chkCastello.checked); castelloQty.value = a.argento.castello;
-  const btn = document.querySelector(".btn-primary");
-  btn.textContent = "Aggiorna";
-  btn.onclick = function(){
-    attaccanti[index] = {
-      nome: nome.value,
-      off: Number(off.value)||0,
-      argento:{
-        citta: chkCitta.checked ? Number(cittaQty.value)||0:0,
-        piazzaForte: chkPiazzaForte.checked ? Number(piazzaForteQty.value)||0:0,
-        castello: chkCastello.checked ? Number(castelloQty.value)||0:0
-      }
-    };
-    attaccanti[index].soloBuffer = (attaccanti[index].argento.citta===0 && attaccanti[index].argento.piazzaForte===0 && attaccanti[index].argento.castello===0);
-    btn.textContent = "Aggiungi";
-    btn.onclick = salvaAttaccante;
-    mostraAttaccanti();
-    aggiornaTotali();
-    pulisciForm();
-    salvaLocalStorage();
-  };
 }
 
 function analizzaLink(){
+  ["errGiorno","errOra"].forEach(resetError);
+  let valid=true;
+  if(!giorno.value){document.getElementById("errGiorno").classList.remove("hidden");giorno.classList.add("error"); valid=false;}
+  if(!ora.value){document.getElementById("errOra").classList.remove("hidden");ora.classList.add("error"); valid=false;}
+  if(!valid) return;
+
   linkInput.value.split("\n").forEach(r=>{
     if(!r.trim()) return;
-    let tipo=null;
-    if(r.toLowerCase().includes("citt")) tipo="citta";
-    if(r.toLowerCase().includes("piazza")) tipo="piazzaForte";
-    if(r.toLowerCase().includes("castello")) tipo="castello";
-    if(tipo) linkList.push({url:r,tipo,assegnato:0});
+    let t=null;
+    if(r.toLowerCase().includes("citt")) t="citta";
+    if(r.toLowerCase().includes("piazza")) t="piazza";
+    if(r.toLowerCase().includes("castello")) t="castello";
+    if(t) linkList.push({url:r,tipo:t,dettagli:[],giorno:giorno.value,ora:ora.value,real:true});
   });
   mostraLink();
-  salvaLocalStorage();
-}
-
-function mostraLink(){
-  listaLink.innerHTML = linkList.map((l,i)=>`
-    <div class="card link-assign">
-      <b>${i+1}) ${l.tipo.toUpperCase()}</b> → Truppe assegnate: ${l.assegnato}<br>${l.url}
-    </div>`).join("");
+  salva();
 }
 
 function assegnaLink(){
-  const richieste = { citta: Number(truppeCittaInput.value)||0, piazzaForte: Number(truppePiazzaInput.value)||0, castello: Number(truppeCastelloInput.value)||0 };
-  const log = [];
+  ["errReqCitta","errReqPiazza","errReqCastello"].forEach(resetError);
+  let valid=true;
+  if(!reqCitta.value){document.getElementById("errReqCitta").classList.remove("hidden");reqCitta.classList.add("error"); valid=false;}
+  if(!reqPiazza.value){document.getElementById("errReqPiazza").classList.remove("hidden");reqPiazza.classList.add("error"); valid=false;}
+  if(!reqCastello.value){document.getElementById("errReqCastello").classList.remove("hidden");reqCastello.classList.add("error"); valid=false;}
+  if(!valid) return;
 
-  for(let l of linkList){
-    let tipo = l.tipo;
-    let daAssegnare = richieste[tipo];
-    if(daAssegnare<=0) continue;
-    for(let a of attaccanti){
-      if(a.soloBuffer) continue;
-      let q = a.argento[tipo] || 0;
-      if(q>0 && daAssegnare>0){
-        let usati = Math.min(q, daAssegnare);
-        l.assegnato += usati; daAssegnare -= usati;
-        log.push(`${a.nome} copre ${usati} di ${tipo}`);
-      }
-    }
-  }
+  if(attaccanti.length===0){alert("Devi inserire almeno un attaccante!"); return;}
 
-  for(let l of linkList){
-    let tipo = l.tipo;
-    let daAssegnare = richieste[tipo] - l.assegnato;
-    if(daAssegnare<=0) continue;
-    for(let a of attaccanti){
-      if(!a.soloBuffer) continue;
-      if(a.off>0 && daAssegnare>0){
-        let usati = Math.min(a.off, daAssegnare);
-        l.assegnato += usati; daAssegnare -= usati;
-        log.push(`${a.nome} (Buffer) copre ${usati} di ${tipo}`);
-      }
-    }
-  }
-
+  linkList.forEach(l=>{
+    if(!l.real) return;
+    l.dettagli=[];
+    let req={citta:+reqCitta.value,piazza:+reqPiazza.value,castello:+reqCastello.value}[l.tipo];
+    let rest=req;
+    attaccanti.forEach(a=>{
+      if(rest<=0||a.supporto) return;
+      let q=a.argento[l.tipo]||0;
+      if(q>0){let use=Math.min(q,rest); rest-=use; l.dettagli.push({nome:a.nome,truppe:use,tipo:"ARGENTO",hab:l.tipo});}
+    });
+    attaccanti.forEach(a=>{
+      if(rest<=0||!a.supporto) return;
+      let use=Math.min(a.off,rest); rest-=use; l.dettagli.push({nome:a.nome,truppe:use,tipo:"OFF",hab:l.tipo}); 
+    });
+  });
   mostraLink();
-  salvaLocalStorage();
-  alert("Assegnazione completata:\n" + log.join("\n"));
+  salva();
 }
 
-function salvaLocalStorage(){
-  const dati = {attaccanti, linkList, truppe:{citta:truppeCittaInput.value,piazza:truppePiazzaInput.value,castello:truppeCastelloInput.value}};
-  localStorage.setItem("gestioneCoordinato", JSON.stringify(dati));
+function assegnaFake(){
+  ["errGiornoFake","errOraFake"].forEach(resetError);
+  let valid=true;
+  if(!giornoFake.value){document.getElementById("errGiornoFake").classList.remove("hidden");giornoFake.classList.add("error"); valid=false;}
+  if(!oraFake.value){document.getElementById("errOraFake").classList.remove("hidden");oraFake.classList.add("error"); valid=false;}
+  if(!valid) return;
+
+  if(attaccanti.length===0){alert("Devi inserire almeno un attaccante!"); return;}
+
+  linkFake.value.split("\n").forEach(r=>{
+    if(!r.trim()) return;
+    attaccanti.forEach(a=>{
+      linkList.push({url:r,tipo:"fake",dettagli:[{nome:a.nome,truppe:0,tipo:"FAKE",hab:"fake"}],giorno:giornoFake.value,ora:oraFake.value,real:false});
+    });
+  });
+  mostraLink();
+  salva();
 }
 
-function recuperaLocalStorage(){
-  const dati = JSON.parse(localStorage.getItem("gestioneCoordinato"));
-  if(dati){
-    if(confirm("Dati salvati trovati. Vuoi recuperarli?")){
-      attaccanti = dati.attaccanti || [];
-      linkList = dati.linkList || [];
-      truppeCittaInput.value = dati.truppe?.citta || 0;
-      truppePiazzaInput.value = dati.truppe?.piazza || 0;
-      truppeCastelloInput.value = dati.truppe?.castello || 0;
-      mostraAttaccanti(); aggiornaTotali(); mostraLink();
-    } else {
-      localStorage.removeItem("gestioneCoordinato");
-    }
+function mostraLink(){
+  listaLink.innerHTML=linkList.map((l,i)=>`
+    <div class="card">
+      <b>Target ${i+1} - ${l.real?"REAL":"FAKE"}</b><br>
+      ${l.url}<br>
+      Impatto ${l.giorno} ${l.ora}<br>
+      ${l.dettagli.map(d=>`• ${d.nome} ${d.truppe} (${d.tipo})`).join("<br>")}
+    </div>`).join("");
+}
+
+function exportCoordinato(){exportFile("all");}
+function exportSoloReal(){exportFile("real");}
+function exportSoloFake(){exportFile("fake");}
+
+function exportFile(tipo){
+  let out={};
+  linkList.forEach(l=>{
+    if(tipo==="real"&&l.real===false) return;
+    if(tipo==="fake"&&l.real===true) return;
+    l.dettagli.forEach(d=>{
+      if(!out[d.nome]) out[d.nome]=[];
+      out[d.nome].push({link:l.url,giorno:l.giorno,ora:l.ora,truppe:d.truppe,tipo:d.tipo,hab:d.hab});
+    });
+  });
+  let txt="";
+  for(let n in out){
+    txt+=`=== ${n} ===\n`;
+    out[n].forEach(r=>{
+      txt+=`${r.tipo} ${r.hab.toUpperCase()}\n`;
+      txt+=`Link: ${r.link}\n`;
+      txt+=`Impatto: ${r.giorno} ${r.ora}\n`;
+      txt+=`Truppe: ${r.truppe}\n\n`;
+    });
+    txt+="----------------------\n\n";
   }
+  const b=new Blob([txt],{type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);
+  a.download="coordinato.txt";
+  a.click();
 }
 
-function resetTutto(){
-  if(confirm("Vuoi resettare TUTTO e partire da zero?")){
-    attaccanti=[]; linkList=[];
-    truppeCittaInput.value=truppePiazzaInput.value=truppeCastelloInput.value="";
-    localStorage.removeItem("gestioneCoordinato");
-    mostraAttaccanti(); aggiornaTotali(); mostraLink();
-  }
+function salva(){
+  localStorage.setItem("coord",JSON.stringify({
+    attaccanti,linkList,
+    req:{c:reqCitta.value,p:reqPiazza.value,ca:reqCastello.value},
+    imp:{g:giorno.value,o:ora.value}, impFake:{g:giornoFake.value,o:oraFake.value}
+  }));
 }
 
-setInterval(() => {
-  salvaLocalStorage();
-}, 5000);
-
-window.onload = recuperaLocalStorage;
+window.onload=()=>{
+  const d=JSON.parse(localStorage.getItem("coord"));
+  if(!d||!confirm("Ripristinare dati salvati?"))return;
+  attaccanti=d.attaccanti||[];
+  linkList=d.linkList||[];
+  reqCitta.value=d.req.c;
+  reqPiazza.value=d.req.p;
+  reqCastello.value=d.req.ca;
+  giorno.value=d.imp.g;
+  ora.value=d.imp.o;
+  giornoFake.value=d.impFake.g;
+  oraFake.value=d.impFake.o;
+  mostraAttaccanti();
+  mostraLink();
+};
 </script>
-
 </body>
 </html>
