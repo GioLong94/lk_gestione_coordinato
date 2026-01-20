@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestione Coordinato</title>
+
+<style>
+*{box-sizing:border-box}
+body{font-family:Segoe UI;padding:20px;background:#f5f5f5;max-width:1200px;margin:auto}
+.section{background:#fff;padding:20px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+h1,h2,h3{margin-bottom:10px}
+input,textarea{padding:8px;border:1px solid #ccc;border-radius:4px}
+textarea{width:100%;min-height:120px}
+button{padding:8px 15px;border:none;border-radius:4px;cursor:pointer;margin-top:5px}
+.btn-primary{background:#4CAF50;color:#fff}
+.btn-secondary{background:#2196F3;color:#fff}
+.btn-danger{background:#f44336;color:#fff}
+.card{border:1px solid #ddd;padding:10px;margin-bottom:8px;border-radius:5px;background:#fafafa}
+.hidden{display:none !important;}
+.help{background:#2196F3;color:#fff;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;margin-left:6px}
+.tooltip{margin-top:6px;padding:8px;background:#eef5ff;border-left:4px solid #2196F3;border-radius:4px}
+.badge-argento{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#FFD700,#FFA500);font-weight:700;font-size:12px}
+.small{font-size:12px;color:#555}
+a.lk{word-break:break-all}
+
+/* Legenda toggle */
+.legend-btn{position:fixed; top:10px; right:10px; z-index:2000;}
+.legend-panel{
+  position:fixed; top:52px; right:10px; z-index:2000;
+  width:min(560px,92vw);
+  max-height:min(82vh,900px);
+  overflow:auto;
+  background:#fff;
+  border:2px solid #2196F3;
+  border-radius:10px;
+  padding:14px;
+  box-shadow:0 10px 25px rgba(0,0,0,.18);
+}
+.legend-panel h3{margin-top:0}
+.legend-panel h4{margin:14px 0 6px}
+.legend-panel p, .legend-panel li{font-size:13px; line-height:1.35}
+.legend-panel code{background:#f3f3f3;padding:2px 6px;border-radius:6px}
+
+/* Modal duplicati */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  display:flex; align-items:center; justify-content:center;
+  z-index:9999;
+}
+.modal{
+  width:min(820px,92vw);
+  background:#fff;
+  border-radius:10px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.modal h3{margin:0 0 8px}
+.modal .list{max-height:340px;overflow:auto;border:1px solid #eee;border-radius:8px;padding:10px;background:#fafafa}
+.modal .list div{padding:8px 0;border-bottom:1px solid #eee;white-space:pre-wrap}
+.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+</style>
+</head>
+
+<body>
+
+<div class="legend-btn">
+  <button id="btnLegenda" class="btn-secondary">Legenda</button>
+</div>
+
+<div id="legendPanel" class="legend-panel hidden">
+  <h3>📘 Legenda / Guida completa (semplice ma precisa)</h3>
+
+  <h4>Obiettivo</h4>
+  <p>
+    Questo file crea un “coordinato” assegnando automaticamente:
+    <b>ARGENTO</b> (chi conquista il target) e <b>OFF</b> (truppe),
+    sui target <b>REAL</b>.
+    In più gestisce target <b>FAKE</b> (stesso formato dei REAL), che vengono esportati come FAKE.
+  </p>
+
+  <h4>1) Impatto REAL</h4>
+  <ul>
+    <li>Inserisci <b>Giorno</b> in formato <code>GG/MM</code> (es. <code>21/01</code>).</li>
+    <li>Inserisci <b>Ora</b> in formato <code>HH:MM</code> (es. <code>20:30</code>).</li>
+    <li>Questo impatto verrà applicato a tutti i target REAL che analizzi.</li>
+  </ul>
+
+  <h4>2) Import massivo attaccanti (consigliato)</h4>
+  <p>Incolla la lista. Il sistema crea automaticamente gli attaccanti come se li inserissi a mano.</p>
+  <p><b>Il parser capisce:</b></p>
+  <ul>
+    <li><code>k</code> e <code>M</code> per le OFF: <code>50k</code>, <code>300k</code>, <code>1M</code></li>
+    <li><code>off</code> può stare prima o dopo: <code>50k off</code> oppure <code>off 110k</code></li>
+    <li>Argento: <code>arg</code> o <code>argento</code></li>
+    <li>Quantità: <code>x</code> o <code>per</code></li>
+    <li>Tipi: <code>city / città / citta</code>, <code>fort / fortezza / fortezze / piazzaforte / pf</code>, <code>castello</code></li>
+  </ul>
+  <p><b>Esempi validi:</b></p>
+  <ul>
+    <li><code>lord snow 50k off</code></li>
+    <li><code>massimo 300k off arg x 3 city</code></li>
+    <li><code>panza e nani 245k off arg x 6 città e 6 fortezze</code></li>
+    <li><code>Durabo off 110k arg x 1 fort</code></li>
+    <li><code>Lebolas 200k arg x 3 fortezze</code></li>
+  </ul>
+  <p class="small">
+    Nota: se scrivi cose ambigue tipo “x tante city”, il sistema mette 0 e ti avvisa quali righe non erano chiare.
+  </p>
+
+  <h4>3) Inserimento manuale attaccanti</h4>
+  <ul>
+    <li>Se vuoi, puoi aggiungerli a mano: Nome, OFF (anche 0), e quante conquiste può fare per tipo.</li>
+    <li>Puoi anche <b>modificare</b> o <b>eliminare</b> un attaccante in qualsiasi momento.</li>
+    <li>L’ultimo inserito va sempre in cima.</li>
+  </ul>
+
+  <h4>4) Truppe necessarie</h4>
+  <ul>
+    <li>Inserisci quante OFF minime vuoi su ogni tipo: Città / PiazzaForte / Castello.</li>
+    <li>Servono per calcolare dove manca OFF.</li>
+  </ul>
+
+  <h4>5) Target REAL (formato obbligatorio 2 righe)</h4>
+  <p>Ogni target REAL va in <b>2 righe</b>:</p>
+  <ol>
+    <li><code>Città: NOME TARGET</code> (oppure PiazzaForte / Castello)</li>
+    <li><code>l+k://...</code> (il link cliccabile)</li>
+  </ol>
+  <p>Poi premi <b>Analizza</b>. Se ci sono duplicati, esce un popup: decidi se tenerli o rimuoverli.</p>
+
+  <h4>6) Assegna REAL (logica)</h4>
+  <ul>
+    <li>Prima assegna <b>ARGENTO</b> ai target, rispettando quante conquiste può fare ogni attaccante.</li>
+    <li>Poi distribuisce le <b>OFF spezzandole</b> su più target fino a coprire le minime.</li>
+    <li>Su schermo l’attaccante che argenta un target ha un badge <b>ARGENTO</b>.</li>
+  </ul>
+
+  <h4>7) Target FAKE</h4>
+  <ul>
+    <li>FAKE ha lo <b>stesso formato dei REAL</b> (2 righe: Tipo: Nome + Link).</li>
+    <li>Impatto FAKE è separato (giorno/ora FAKE).</li>
+    <li>Non consuma OFF: in export vengono marcati come <b>FAKE</b>.</li>
+  </ul>
+
+  <h4>8) Export</h4>
+  <ul>
+    <li><b>Export REAL</b>: solo real.</li>
+    <li><b>Export FAKE</b>: solo fake.</li>
+    <li><b>Export unico</b>: per ogni attaccante stampa prima REAL poi FAKE nello stesso blocco.</li>
+  </ul>
+
+  <h4>9) Reset</h4>
+  <p>Reset cancella tutto (attaccanti, real, fake, salvataggio).</p>
+</div>
+
+<h1>🎯 Gestione Coordinato</h1>
+
+<div class="section">
+  <h2>⏱️ Impatto REAL <span class="help" onclick="toggleHelp('hImp')">?</span></h2>
+  <div id="hImp" class="tooltip hidden">Giorno/ora che verrà assegnato a tutti i target REAL analizzati.</div>
+  Giorno <input id="giorno" placeholder="GG/MM"><br><br>
+  Ora <input id="ora" placeholder="HH:MM">
+</div>
+
+<!-- IMPORT MASSIVO: subito dopo impatto -->
+<div class="section">
+  <h2>📥 Importa attaccanti (massivo) <span class="help" onclick="toggleHelp('hImport')">?</span></h2>
+  <div id="hImport" class="tooltip hidden">
+    Incolla una riga per attaccante (nome libero + off + eventuale arg).<br>
+    Esempi:<br>
+    lord snow 50k off<br>
+    massimo 300k off arg x 3 city<br>
+    panza e nani 245k off arg x 6 città e 6 fortezze
+  </div>
+
+  <textarea id="importAttaccanti" placeholder="Incolla qui la lista..."></textarea><br><br>
+  <button id="btnImporta" class="btn-secondary">Importa</button>
+</div>
+
+<div class="section">
+  <h2>➕ Aggiungi attaccante <span class="help" onclick="toggleHelp('hAtt')">?</span></h2>
+  <div id="hAtt" class="tooltip hidden">
+    Inserisci manualmente nome, OFF (anche 0) e quante conquiste (argento) può fare per tipo.
+  </div>
+
+  Nome <input id="nome"><br><br>
+  OFF <input id="off" type="number" placeholder="0 consentito"><br><br>
+
+  <h3>Argento disponibile <span class="help" onclick="toggleHelp('hArg')">?</span></h3>
+  <div id="hArg" class="tooltip hidden">
+    Numero di conquiste possibili per tipo (es. Città=2 significa 2 città conquistabili).
+  </div>
+
+  <label><input type="checkbox" id="chkCitta" onchange="toggleQty('citta')"> Città</label>
+  <input id="cittaQty" type="number" class="hidden" placeholder="Quante città"><br>
+
+  <label><input type="checkbox" id="chkPiazza" onchange="toggleQty('piazza')"> PiazzaForte</label>
+  <input id="piazzaQty" type="number" class="hidden" placeholder="Quante fortezze"><br>
+
+  <label><input type="checkbox" id="chkCastello" onchange="toggleQty('castello')"> Castello</label>
+  <input id="castelloQty" type="number" class="hidden" placeholder="Quanti castelli"><br><br>
+
+  <button id="btnSalvaAtt" class="btn-primary">Aggiungi</button>
+  <button id="btnAnnullaEdit" class="btn-secondary hidden">Annulla modifica</button>
+</div>
+
+<div class="section">
+  <h2>👥 Attaccanti</h2>
+  <div id="listaAttaccanti"></div>
+</div>
+
+<div class="section">
+  <h2>⚙️ Truppe necessarie</h2>
+  Città <input id="reqCitta" type="number"><br><br>
+  PiazzaForte <input id="reqPiazza" type="number"><br><br>
+  Castello <input id="reqCastello" type="number">
+</div>
+
+<div class="section">
+  <h2>🔗 Inserisci target REAL</h2>
+  <div class="small">
+    Formato 2 righe per target:<br>
+    1) <b>Città:</b> Nome<br>
+    2) <b>l+k://</b> link<br>
+  </div><br>
+  <textarea id="linkInput"></textarea><br><br>
+  <button id="btnAnalizzaReal" class="btn-primary">Analizza</button>
+  <button id="btnAssegnaReal" class="btn-secondary">Assegna</button>
+</div>
+
+<div class="section">
+  <h2>🕒 Inserisci target FAKE</h2>
+  <div class="small">Stesso formato dei REAL (2 righe: Tipo: Nome + Link).</div><br>
+  <textarea id="linkFake"></textarea><br><br>
+  Giorno <input id="giornoFake" placeholder="GG/MM"><br><br>
+  Ora <input id="oraFake" placeholder="HH:MM"><br><br>
+  <button id="btnAggiungiFake" class="btn-secondary">Aggiungi FAKE</button>
+</div>
+
+<div class="section">
+  <h2>📑 Target assegnati</h2>
+  <div id="listaLink"></div><br>
+  <button id="btnExportAll" class="btn-primary">📤 Export unico</button>
+  <button id="btnExportReal" class="btn-secondary">📤 Export REAL</button>
+  <button id="btnExportFake" class="btn-secondary">📤 Export FAKE</button>
+  <button id="btnReset" class="btn-danger">Resetta tutto</button>
+</div>
+
+<!-- MODAL DUPLICATI / WARN -->
+<div id="dupModal" class="modal-backdrop hidden">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="dupTitle">Messaggio</h3>
+    <div class="small" id="dupSubtitle"></div>
+    <div class="list" id="dupList"></div>
+    <div class="actions">
+      <button class="btn-danger" id="btnDupRemove">Rimuovi duplicati</button>
+      <button class="btn-secondary" id="btnDupKeep">Tieni duplicati</button>
+      <button class="btn-secondary" id="btnDupClose">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const LS="coord_full_v4";
+  const $ = (id)=>document.getElementById(id);
+
+  let attaccanti=[], realTargets=[], fakeTargets=[];
+  let editingIndex=null;
+
+  // --- UI helpers ---
+  window.toggleHelp = (id)=>{ const e=$(id); if(e) e.classList.toggle("hidden"); };
+  window.toggleQty = (t)=>{ const el=$(t+"Qty"); if(el) el.classList.toggle("hidden"); };
+
+  function toggleLegend(){ $("legendPanel").classList.toggle("hidden"); }
+  $("btnLegenda").addEventListener("click", toggleLegend);
+
+  function esc(s){
+    return String(s??"").replace(/[&<>"']/g, m=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  function isGGMM(s){ return /^\d{2}\/\d{2}$/.test((s||"").trim()); }
+  function isHHMM(s){ return /^\d{2}:\d{2}$/.test((s||"").trim()); }
+
+  function fmtK(n){
+    n=Number(n)||0;
+    if(n>=1e6){
+      const v=n/1e6;
+      return (v%1===0? v.toFixed(0): v.toFixed(v>=10?1:2))+"M";
+    }
+    if(n>=1e3){
+      const v=n/1e3;
+      return (v%1===0? v.toFixed(0): v.toFixed(v>=10?1:2))+"k";
+    }
+    return String(n);
+  }
+
+  function normalizeTipo(s){
+    const t=(s||"").toLowerCase().trim();
+    if(t.startsWith("citt") || t==="city") return "citta";
+    if(t.startsWith("piazza") || t==="pf" || t.startsWith("fort")) return "piazza";
+    if(t.startsWith("cast")) return "castello";
+    return null;
+  }
+
+  // --- Modal generic ---
+  function showModal({title, subtitle, lines, mode, onDecision}){
+    const modal=$("dupModal");
+    $("dupTitle").textContent = title || "Messaggio";
+    $("dupSubtitle").textContent = subtitle || "";
+    $("dupList").innerHTML = (lines||[]).map(x=>`<div>${esc(x)}</div>`).join("");
+
+    const close = ()=>{
+      modal.classList.add("hidden");
+      $("btnDupRemove").onclick=null;
+      $("btnDupKeep").onclick=null;
+      $("btnDupClose").onclick=null;
+      modal.onclick=null;
+      $("btnDupRemove").classList.add("hidden");
+      $("btnDupKeep").classList.add("hidden");
+    };
+
+    modal.onclick = (e)=>{ if(e.target===modal) close(); };
+    $("btnDupClose").onclick = close;
+
+    if(mode==="dups"){
+      $("btnDupRemove").classList.remove("hidden");
+      $("btnDupKeep").classList.remove("hidden");
+      $("btnDupRemove").onclick = ()=>{ close(); onDecision && onDecision("remove"); };
+      $("btnDupKeep").onclick = ()=>{ close(); onDecision && onDecision("keep"); };
+    } else {
+      $("btnDupRemove").classList.add("hidden");
+      $("btnDupKeep").classList.add("hidden");
+    }
+
+    modal.classList.remove("hidden");
+  }
+
+  // --- Save/Load ---
+  function save(){
+    try{
+      localStorage.setItem(LS, JSON.stringify({
+        attaccanti, realTargets, fakeTargets,
+        req:{c:$("reqCitta").value,p:$("reqPiazza").value,ca:$("reqCastello").value},
+        impR:{g:$("giorno").value,o:$("ora").value},
+        impF:{g:$("giornoFake").value,o:$("oraFake").value}
+      }));
+    }catch(e){}
+  }
+
+  function load(){
+    try{
+      const raw=localStorage.getItem(LS);
+      if(!raw) return;
+      const d=JSON.parse(raw);
+      if(!d) return;
+      if(confirm("Ripristinare dati salvati?")){
+        attaccanti = Array.isArray(d.attaccanti)? d.attaccanti: [];
+        realTargets = Array.isArray(d.realTargets)? d.realTargets: [];
+        fakeTargets = Array.isArray(d.fakeTargets)? d.fakeTargets: [];
+        if(d.req){
+          $("reqCitta").value=d.req.c??"";
+          $("reqPiazza").value=d.req.p??"";
+          $("reqCastello").value=d.req.ca??"";
+        }
+        if(d.impR){
+          $("giorno").value=d.impR.g??"";
+          $("ora").value=d.impR.o??"";
+        }
+        if(d.impF){
+          $("giornoFake").value=d.impF.g??"";
+          $("oraFake").value=d.impF.o??"";
+        }
+      }
+    }catch(e){}
+  }
+
+  // --- Render ---
+  function renderAtt(){
+    $("listaAttaccanti").innerHTML = attaccanti.map((a,i)=>`
+      <div class="card">
+        <b>${esc(a.nome)}</b><br>
+        OFF: ${fmtK(a.off)}<br>
+        Argento → Città:${a.argento.citta} | PF:${a.argento.piazza} | Cast:${a.argento.castello}<br><br>
+        <button class="btn-secondary" onclick="editAtt(${i})">Modifica</button>
+        <button class="btn-danger" onclick="delAtt(${i})">Elimina</button>
+      </div>
+    `).join("") || "<i>Nessun attaccante</i>";
+  }
+
+  function renderTargets(){
+    let h="";
+
+    if(realTargets.length){
+      h += `<h3>REAL</h3>`;
+      realTargets.forEach((t,i)=>{
+        const rows = Object.keys(t.alloc||{}).map(n=>{
+          const isSilver = (t.silverBy===n);
+          return `• ${esc(n)} ${fmtK(t.alloc[n])} OFF ${isSilver?'<span class="badge-argento">ARGENTO</span>':""}`;
+        }).join("<br>") || "<i>Nessuna OFF assegnata</i>";
+
+        h += `
+          <div class="card">
+            <b>Target ${i+1} - ${esc(t.tipo)}</b><br>
+            ${esc(t.tipo)}: ${esc(t.nome)}<br>
+            <a class="lk" href="${esc(t.link)}">${esc(t.link)}</a><br>
+            <div class="small">Impatto: ${esc(t.impatto||"")}</div>
+            ${rows}
+          </div>
+        `;
+      });
+    }
+
+    if(fakeTargets.length){
+      h += `<h3>FAKE</h3>`;
+      fakeTargets.forEach((t,i)=>{
+        h += `
+          <div class="card">
+            <b>Fake ${i+1} - ${esc(t.tipo)}</b><br>
+            ${esc(t.tipo)}: ${esc(t.nome)}<br>
+            <a class="lk" href="${esc(t.link)}">${esc(t.link)}</a><br>
+            <div class="small">Impatto: ${esc(t.impatto||"")}</div>
+            ${attaccanti.length ? attaccanti.map(a=>`• ${esc(a.nome)} (fake)`).join("<br>") : "<i>Nessun attaccante</i>"}
+          </div>
+        `;
+      });
+    }
+
+    $("listaLink").innerHTML = h || "<i>Nessun target</i>";
+  }
+
+  // --- Manual add/edit/delete ---
+  function resetAttForm(){
+    $("nome").value="";
+    $("off").value="";
+    $("chkCitta").checked=false; $("cittaQty").value=""; $("cittaQty").classList.add("hidden");
+    $("chkPiazza").checked=false; $("piazzaQty").value=""; $("piazzaQty").classList.add("hidden");
+    $("chkCastello").checked=false; $("castelloQty").value=""; $("castelloQty").classList.add("hidden");
+    editingIndex=null;
+    $("btnSalvaAtt").textContent="Aggiungi";
+    $("btnAnnullaEdit").classList.add("hidden");
+  }
+
+  function addOrUpdateAtt(){
+    const nome=$("nome").value.trim();
+    const offRaw=$("off").value;
+    if(!nome){ alert("Inserisci nome"); return; }
+    if(offRaw===""){ alert("Inserisci OFF (può essere 0)"); return; }
+    const off=Number(offRaw||0);
+    if(!Number.isFinite(off) || off<0){ alert("OFF deve essere un numero >= 0"); return; }
+
+    const arg={
+      citta: $("chkCitta").checked ? (Number($("cittaQty").value)||0) : 0,
+      piazza: $("chkPiazza").checked ? (Number($("piazzaQty").value)||0) : 0,
+      castello: $("chkCastello").checked ? (Number($("castelloQty").value)||0) : 0
+    };
+
+    if(off<=0 && !arg.citta && !arg.piazza && !arg.castello){
+      alert("OFF=0 e argento=0 non serve. Metti almeno OFF>0 o argento.");
+      return;
+    }
+
+    if(editingIndex!==null){
+      attaccanti.splice(editingIndex,1);
+    }
+    attaccanti.unshift({nome, off, argento: arg});
+    resetAttForm();
+    renderAtt(); save();
+  }
+
+  window.editAtt = (i)=>{
+    const a=attaccanti[i];
+    if(!a) return;
+    editingIndex=i;
+
+    $("nome").value=a.nome;
+    $("off").value=a.off;
+
+    $("chkCitta").checked = a.argento.citta>0;
+    $("chkPiazza").checked = a.argento.piazza>0;
+    $("chkCastello").checked = a.argento.castello>0;
+
+    $("cittaQty").value = a.argento.citta || "";
+    $("piazzaQty").value = a.argento.piazza || "";
+    $("castelloQty").value = a.argento.castello || "";
+
+    $("cittaQty").classList.toggle("hidden", !$("chkCitta").checked);
+    $("piazzaQty").classList.toggle("hidden", !$("chkPiazza").checked);
+    $("castelloQty").classList.toggle("hidden", !$("chkCastello").checked);
+
+    $("btnSalvaAtt").textContent="Aggiorna";
+    $("btnAnnullaEdit").classList.remove("hidden");
+  };
+
+  window.delAtt = (i)=>{
+    if(!confirm("Eliminare questo attaccante?")) return;
+    attaccanti.splice(i,1);
+    resetAttForm();
+    renderAtt(); renderTargets(); save();
+  };
+
+  $("btnSalvaAtt").addEventListener("click", addOrUpdateAtt);
+  $("btnAnnullaEdit").addEventListener("click", resetAttForm);
+
+  // --- Parsing targets (2 righe) ---
+  function parseTargetBlocks(text){
+    const lines = text.split("\n").map(s=>s.trim()).filter(Boolean);
+    const out=[];
+    for(let i=0;i<lines.length;i++){
+      const header=lines[i];
+      const link=lines[i+1];
+      if(!link) break;
+      const m=header.match(/^([^:]+)\s*:\s*(.+)$/);
+      if(!m) continue;
+
+      const tipo = normalizeTipo(m[1]);
+      if(!tipo) continue;
+      if(!link.includes("://")) continue;
+
+      out.push({tipo, nome:m[2].trim(), link:link.trim()});
+      i++;
+    }
+    return out;
+  }
+
+  function detectDupLinks(existing, incoming){
+    const count=new Map();
+    const add=(k)=>count.set(k,(count.get(k)||0)+1);
+    existing.forEach(t=>add(t.link.trim()));
+    incoming.forEach(t=>add(t.link.trim()));
+    return Array.from(count.entries()).filter(([k,v])=>v>1).map(([k])=>k);
+  }
+
+  // --- Import massivo attaccanti: parser per il tuo formato ---
+  function parseNumberWithSuffix(token){
+    // "50k" "110k" "1M" "200000"
+    const t=(token||"").trim().toLowerCase().replace(",",".");
+    const m=t.match(/^(\d+(?:\.\d+)?)(k|m)?$/i);
+    if(!m) return null;
+    const num=parseFloat(m[1]);
+    const suf=(m[2]||"").toLowerCase();
+    if(!isFinite(num)) return null;
+    if(suf==="k") return Math.round(num*1000);
+    if(suf==="m") return Math.round(num*1000000);
+    return Math.round(num);
+  }
+
+  function parseOffFromLine(line){
+    // casi:
+    // "lord snow 50k off"
+    // "Durabo off 110k ..."
+    // "Drake 350k"
+    const s=line;
+
+    // 1) pattern: "<num> off"
+    let m=s.match(/(\d+(?:[.,]\d+)?\s*[kKmM]?)\s*off\b/i);
+    if(m){
+      const n=parseNumberWithSuffix(m[1].replace(/\s+/g,""));
+      if(n!==null) return {off:n, offSpan:[m.index, m.index+m[0].length], offToken:m[0]};
+    }
+
+    // 2) pattern: "off <num>"
+    m=s.match(/\boff\b\s*(\d+(?:[.,]\d+)?\s*[kKmM]?)/i);
+    if(m){
+      const n=parseNumberWithSuffix(m[1].replace(/\s+/g,""));
+      if(n!==null) return {off:n, offSpan:[m.index, m.index+m[0].length], offToken:m[0]};
+    }
+
+    // 3) pattern: first number token in line (k/m or plain) (es. "Drake 350k")
+    m=s.match(/(\d+(?:[.,]\d+)?\s*[kKmM]?)/);
+    if(m){
+      const n=parseNumberWithSuffix(m[1].replace(/\s+/g,""));
+      if(n!==null) return {off:n, offSpan:[m.index, m.index+m[0].length], offToken:m[0]};
+    }
+
+    return {off:0, offSpan:null, offToken:null, noOffFound:true};
+  }
+
+  function parseArgentoFromLine(line){
+    // supporta: "arg x 3 city", "argento per 2 fortezze", "arg x 6 città e 6 fortezze"
+    // sinonimi:
+    // city/città/citta -> citta
+    // fort/forte/fortezza/fortezze/piazza/piazzaforte/pf -> piazza
+    // castello/castelli -> castello
+    const lower=line.toLowerCase();
+
+    const out={citta:0,piazza:0,castello:0, warnings:[]};
+
+    // se non contiene arg/argento, return tutti 0
+    if(!/\barg\b|\bargento\b/.test(lower)) return out;
+
+    // taglia dal punto "arg" in poi per evitare che il nome crei falsi positivi
+    const idx = lower.search(/\barg\b|\bargento\b/);
+    const tail = (idx>=0) ? lower.slice(idx) : lower;
+
+    // quantità può essere: "x 3 city" oppure "per 3 city" oppure "3 city"
+    // gestiamo anche "e" tra coppie.
+    // supporta "fort" "fortezze" ecc.
+    const rx = /(?:\b(x|per)\b\s*)?(\d+|tante)\s*(?:\b(x|per)\b\s*)?(city|città|citta|fort|forte|fortezza|fortezze|piazza|piazzaforte|pf|castello|castelli)\b/gi;
+
+    let m;
+    while((m=rx.exec(tail))!==null){
+      const qtyRaw=(m[2]||"").trim();
+      const typeRaw=(m[4]||"").trim();
+
+      let qty=0;
+      if(qtyRaw==="tante"){
+        qty=0;
+        out.warnings.push(`Quantità "tante" non supportata: "${m[0].trim()}" → messo 0`);
+      } else {
+        qty=parseInt(qtyRaw,10)||0;
+      }
+
+      const tipo=normalizeTipo(typeRaw);
+      if(!tipo){
+        out.warnings.push(`Tipo non riconosciuto: "${m[0].trim()}"`);
+        continue;
+      }
+
+      if(tipo==="citta") out.citta += qty;
+      if(tipo==="piazza") out.piazza += qty;
+      if(tipo==="castello") out.castello += qty;
+    }
+
+    return out;
+  }
+
+  function parseNameFromLine(line, offSpan){
+    // nome = testo prima della parte OFF trovata (se possibile), altrimenti prima di "arg" ecc.
+    const s=line.trim();
+
+    if(offSpan && offSpan.length===2){
+      const before = s.slice(0, offSpan[0]).trim();
+      // se prima è vuoto (es. "off 110k ..."), allora prendi fino a "off"
+      if(before) return before;
+    }
+
+    // fallback: se c'è "off" in mezzo, nome è prima di off
+    const idxOff = s.toLowerCase().indexOf(" off ");
+    if(idxOff>0) return s.slice(0, idxOff).trim();
+
+    // fallback: se c'è "arg" in mezzo, nome è prima di arg
+    const idxArg = s.toLowerCase().search(/\barg\b|\bargento\b/);
+    if(idxArg>0) return s.slice(0, idxArg).trim();
+
+    // fallback: prima del primo numero
+    const m=s.match(/(\d)/);
+    if(m && m.index>0) return s.slice(0,m.index).trim();
+
+    return s;
+  }
+
+  function importMassivo(){
+    const txt=$("importAttaccanti").value.trim();
+    if(!txt){ alert("Incolla una lista"); return; }
+
+    const lines = txt.split("\n").map(x=>x.trim()).filter(Boolean);
+    const problems=[];
+
+    // processiamo in ordine: unshift per simulare inserimento manuale riga per riga (l'ultima finisce in cima)
+    lines.forEach((line, idx)=>{
+      const offInfo=parseOffFromLine(line);
+      const argInfo=parseArgentoFromLine(line);
+      const nome=parseNameFromLine(line, offInfo.offSpan);
+
+      const hasSomething = (offInfo.off>0) || (argInfo.citta>0) || (argInfo.piazza>0) || (argInfo.castello>0);
+
+      if(!nome){
+        problems.push(`Riga ${idx+1}: nome vuoto → "${line}"`);
+        return;
+      }
+      if(!hasSomething){
+        problems.push(`Riga ${idx+1}: niente OFF/argento riconosciuto → "${line}"`);
+        return;
+      }
+
+      // se OFF non trovato, off=0 e segnaliamo (ma può essere valido se ha argento)
+      if(offInfo.noOffFound){
+        problems.push(`Riga ${idx+1}: OFF non trovato, messo 0 → "${line}"`);
+      }
+      // warnings argento
+      (argInfo.warnings||[]).forEach(w=>problems.push(`Riga ${idx+1}: ${w} → "${line}"`));
+
+      // crea attaccante
+      attaccanti.unshift({
+        nome,
+        off: Number(offInfo.off)||0,
+        argento: {
+          citta: argInfo.citta||0,
+          piazza: argInfo.piazza||0,
+          castello: argInfo.castello||0
+        }
+      });
+    });
+
+    $("importAttaccanti").value="";
+    renderAtt(); save();
+
+    if(problems.length){
+      showModal({
+        title: "Import completato con avvisi",
+        subtitle: "Alcune righe erano ambigue o parzialmente riconosciute.",
+        lines: problems.slice(0, 200), // evitiamo muro infinito
+        mode: "info"
+      });
+    } else {
+      alert("Import completato.");
+    }
+  }
+
+  $("btnImporta").addEventListener("click", importMassivo);
+
+  // --- REAL/FAKE analyze with duplicates ---
+  function getImpattoReal(){
+    const g=$("giorno").value.trim();
+    const o=$("ora").value.trim();
+    if(!isGGMM(g)) { alert("Giorno REAL deve essere GG/MM"); return null; }
+    if(!isHHMM(o)) { alert("Ora REAL deve essere HH:MM"); return null; }
+    return `${g} ${o}`;
+  }
+  function getImpattoFake(){
+    const g=$("giornoFake").value.trim();
+    const o=$("oraFake").value.trim();
+    if(!isGGMM(g)) { alert("Giorno FAKE deve essere GG/MM"); return null; }
+    if(!isHHMM(o)) { alert("Ora FAKE deve essere HH:MM"); return null; }
+    return `${g} ${o}`;
+  }
+
+  function analizzaTargets({text, list, impatto, onDone, label}){
+    const parsed=parseTargetBlocks(text);
+    if(!parsed.length){
+      alert(`${label}: input non valido. Serve formato 2 righe per target.`);
+      return;
+    }
+
+    const dups = detectDupLinks(list, parsed);
+    const proceed = (mode)=>{
+      const seen = new Set(list.map(t=>t.link.trim()));
+      const finalIncoming=[];
+      for(const t of parsed){
+        const key=t.link.trim();
+        if(mode==="remove"){
+          if(seen.has(key)) continue;
+          if(finalIncoming.some(x=>x.link.trim()===key)) continue;
+          seen.add(key);
+        }
+        finalIncoming.push(t);
+      }
+
+      finalIncoming.forEach(p=>{
+        list.push({
+          tipo: p.tipo,
+          nome: p.nome,
+          link: p.link,
+          impatto,
+          // real fields
+          silverBy: null,
+          alloc: {},
+          reqOff: 0
+        });
+      });
+
+      onDone && onDone();
+      renderTargets(); save();
+    };
+
+    if(dups.length){
+      showModal({
+        title: "Link duplicati trovati",
+        subtitle: "Vuoi tenerli o rimuovere i duplicati extra (ne resta 1 copia)?",
+        lines: dups.map(k=>{
+          const sample = parsed.find(x=>x.link.trim()===k) || list.find(x=>x.link.trim()===k);
+          return sample ? `${sample.tipo.toUpperCase()}: ${sample.nome}\n${sample.link}` : k;
+        }),
+        mode: "dups",
+        onDecision: proceed
+      });
+    } else {
+      proceed("keep");
+    }
+  }
+
+  $("btnAnalizzaReal").addEventListener("click", ()=>{
+    if(attaccanti.length===0){ alert("Inserisci prima almeno un attaccante"); return; }
+    const imp=getImpattoReal(); if(!imp) return;
+    analizzaTargets({
+      text: $("linkInput").value,
+      list: realTargets,
+      impatto: imp,
+      onDone: ()=>{ $("linkInput").value=""; },
+      label: "REAL"
+    });
+  });
+
+  $("btnAggiungiFake").addEventListener("click", ()=>{
+    if(attaccanti.length===0){ alert("Inserisci prima almeno un attaccante"); return; }
+    const imp=getImpattoFake(); if(!imp) return;
+
+    // FAKE usa stessa struttura ma senza alloc/silverBy in output: li ignoriamo
+    const parsed=parseTargetBlocks($("linkFake").value);
+    if(!parsed.length){ alert("FAKE: input non valido. Serve formato 2 righe."); return; }
+
+    const dups = detectDupLinks(fakeTargets, parsed);
+    const proceed=(mode)=>{
+      const seen = new Set(fakeTargets.map(t=>t.link.trim()));
+      const finalIncoming=[];
+      for(const t of parsed){
+        const key=t.link.trim();
+        if(mode==="remove"){
+          if(seen.has(key)) continue;
+          if(finalIncoming.some(x=>x.link.trim()===key)) continue;
+          seen.add(key);
+        }
+        finalIncoming.push(t);
+      }
+
+      finalIncoming.forEach(p=>{
+        fakeTargets.push({
+          tipo: p.tipo,
+          nome: p.nome,
+          link: p.link,
+          impatto
+        });
+      });
+
+      $("linkFake").value="";
+      renderTargets(); save();
+    };
+
+    if(dups.length){
+      showModal({
+        title: "Duplicati nei FAKE",
+        subtitle: "Vuoi tenerli o rimuovere i duplicati extra?",
+        lines: dups.map(k=>{
+          const sample = parsed.find(x=>x.link.trim()===k) || fakeTargets.find(x=>x.link.trim()===k);
+          return sample ? `${sample.tipo.toUpperCase()}: ${sample.nome}\n${sample.link}` : k;
+        }),
+        mode: "dups",
+        onDecision: proceed
+      });
+    } else {
+      proceed("keep");
+    }
+  });
+
+  // --- Assegna REAL: argento multi-target + off spezzabili ---
+  $("btnAssegnaReal").addEventListener("click", ()=>{
+    if(attaccanti.length===0){ alert("Inserisci prima almeno un attaccante"); return; }
+    if(realTargets.length===0){ alert("Inserisci prima dei target REAL"); return; }
+
+    const reqC=Number($("reqCitta").value);
+    const reqP=Number($("reqPiazza").value);
+    const reqCA=Number($("reqCastello").value);
+    if(!reqC || !reqP || !reqCA){
+      alert("Inserisci truppe necessarie per Città/PiazzaForte/Castello (numeri > 0)");
+      return;
+    }
+    const req={citta:reqC,piazza:reqP,castello:reqCA};
+
+    // reset
+    realTargets.forEach(t=>{
+      t.silverBy=null;
+      t.alloc={};
+      t.reqOff=req[t.tipo]||0;
+    });
+
+    // argento assignment
+    const silverRem={};
+    attaccanti.forEach(a=>{
+      silverRem[a.nome]={
+        citta:Number(a.argento.citta)||0,
+        piazza:Number(a.argento.piazza)||0,
+        castello:Number(a.argento.castello)||0
+      };
+    });
+
+    for(const t of realTargets){
+      for(const a of attaccanti){
+        if((silverRem[a.nome]?.[t.tipo]||0)>0){
+          t.silverBy=a.nome;
+          silverRem[a.nome][t.tipo]--;
+          break;
+        }
+      }
+    }
+
+    // off allocation (spezzabili)
+    const offRem={};
+    attaccanti.forEach(a=>offRem[a.nome]=Number(a.off)||0);
+    const need=realTargets.map(t=>Number(t.reqOff)||0);
+
+    function alloc(name, idx, q){
+      if(q<=0) return;
+      const t=realTargets[idx];
+      t.alloc[name]=(t.alloc[name]||0)+q;
+      offRem[name]-=q;
+      need[idx]-=q;
+      if(need[idx]<0) need[idx]=0;
+      if(offRem[name]<0) offRem[name]=0;
+    }
+
+    // pass A: chi argenta copre prima i suoi target
+    for(const a of attaccanti){
+      let off = offRem[a.nome]||0;
+      if(off<=0) continue;
+
+      for(let i=0;i<realTargets.length;i++){
+        if(off<=0) break;
+        if(realTargets[i].silverBy !== a.nome) continue;
+        if(need[i]<=0) continue;
+        const use=Math.min(off, need[i]);
+        alloc(a.nome, i, use);
+        off = offRem[a.nome]||0;
+      }
+    }
+
+    // pass B: resto copre dove manca di più
+    function pickMaxNeedIndex(){
+      let bi=-1, bv=0;
+      for(let i=0;i<need.length;i++){
+        if(need[i]>bv){ bv=need[i]; bi=i; }
+      }
+      return bv>0 ? bi : -1;
+    }
+
+    let guard=0;
+    while(true){
+      if(guard++>200000) break;
+      const idx=pickMaxNeedIndex();
+      if(idx===-1) break;
+
+      let chosen=null;
+      for(const a of attaccanti){
+        if((offRem[a.nome]||0)>0){ chosen=a.nome; break; }
+      }
+      if(!chosen) break;
+
+      const use=Math.min(offRem[chosen], need[idx]);
+      alloc(chosen, idx, use);
+    }
+
+    renderTargets(); save();
+  });
+
+  // --- Export ---
+  function exportTxt(mode){
+    // mode: all / real / fake
+    const per={};
+    const ensure=(n)=>{ per[n]=per[n]||{real:[],fake:[]}; return per[n]; };
+
+    if(mode==="all" || mode==="real"){
+      realTargets.forEach(t=>{
+        Object.keys(t.alloc||{}).forEach(name=>{
+          ensure(name).real.push({
+            imp:t.impatto,
+            isSilver:(t.silverBy===name),
+            off:t.alloc[name],
+            tipo:t.tipo, nome:t.nome, link:t.link
+          });
+        });
+        if(t.silverBy && !(t.alloc && Object.prototype.hasOwnProperty.call(t.alloc, t.silverBy))){
+          ensure(t.silverBy).real.push({
+            imp:t.impatto, isSilver:true, off:0,
+            tipo:t.tipo, nome:t.nome, link:t.link
+          });
+        }
+      });
+    }
+
+    if(mode==="all" || mode==="fake"){
+      fakeTargets.forEach(t=>{
+        attaccanti.forEach(a=>{
+          ensure(a.nome).fake.push({
+            imp:t.impatto,
+            tipo:t.tipo, nome:t.nome, link:t.link
+          });
+        });
+      });
+    }
+
+    const names=Object.keys(per);
+    if(!names.length){ alert("Nessun dato da esportare"); return; }
+
+    let txt="";
+    names.forEach(name=>{
+      txt += `${name}\n`;
+
+      if(mode==="all" || mode==="real"){
+        if(per[name].real.length){
+          txt += `[REAL]\n`;
+          per[name].real.forEach(r=>{
+            txt += `Impatto: ${r.imp}\n`;
+            txt += r.isSilver ? `ARGENTO e ${fmtK(r.off)} off\n` : `SUPPORTO ${fmtK(r.off)} off\n`;
+            txt += `${r.tipo}\n${r.nome}\n${r.link}\n\n`;
+          });
+        }
+      }
+
+      if(mode==="all" || mode==="fake"){
+        if(per[name].fake.length){
+          txt += `[FAKE]\n`;
+          per[name].fake.forEach(r=>{
+            txt += `Impatto: ${r.imp}\n`;
+            txt += `FAKE\n`;
+            txt += `${r.tipo}\n${r.nome}\n${r.link}\n\n`;
+          });
+        }
+      }
+
+      txt += `----------------------\n\n`;
+    });
+
+    const b=new Blob([txt],{type:"text/plain;charset=utf-8"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download = (mode==="real") ? "coordinato_real.txt" : (mode==="fake") ? "coordinato_fake.txt" : "coordinato_all.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  $("btnExportAll").addEventListener("click", ()=>exportTxt("all"));
+  $("btnExportReal").addEventListener("click", ()=>exportTxt("real"));
+  $("btnExportFake").addEventListener("click", ()=>exportTxt("fake"));
+
+  // --- Reset ---
+  $("btnReset").addEventListener("click", ()=>{
+    if(!confirm("Vuoi resettare TUTTO?")) return;
+    attaccanti=[]; realTargets=[]; fakeTargets=[];
+    editingIndex=null;
+    try{ localStorage.removeItem(LS); }catch(e){}
+    resetAttForm();
+    renderAtt(); renderTargets();
+  });
+
+  // init modal hidden
+  $("dupModal").classList.add("hidden");
+
+  // restore
+  load();
+  renderAtt();
+  renderTargets();
+})();
+</script>
+
+</body>
+</html>
