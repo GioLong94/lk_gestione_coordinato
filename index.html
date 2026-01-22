@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestione Coordinato</title>
+
+<style>
+/* --- RESET & BASE --- */
+:root {
+  --primary: #10b981;    /* Emerald Green */
+  --primary-dark: #059669;
+  --secondary: #3b82f6;  /* Modern Blue */
+  --secondary-dark: #2563eb;
+  --danger: #ef4444;     /* Soft Red */
+  --danger-dark: #dc2626;
+  --warning: #f59e0b;    /* Amber */
+  --bg-body: #f3f4f6;    /* Cool Gray */
+  --bg-card: #ffffff;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --radius: 10px;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding: 30px 20px;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  max-width: 1000px;
+  margin: 0 auto;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- TYPOGRAPHY --- */
+h1, h2, h3, h4 { color: var(--text-main); font-weight: 700; letter-spacing: -0.025em; }
+h1 { margin-bottom: 24px; font-size: 2rem; text-align: center; color: var(--secondary-dark); }
+h2 { margin-top: 0; margin-bottom: 16px; font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+h3 { margin-top: 16px; margin-bottom: 10px; font-size: 1.1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; font-weight: 800; }
+
+hr.sep { border: 0; height: 1px; background: var(--border); margin: 16px 0; }
+.small { font-size: 0.875rem; color: var(--text-muted); line-height: 1.4; }
+code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #d946ef; font-family: 'Menlo', 'Monaco', monospace; font-size: 0.9em; }
+
+/* --- LAYOUT COMPONENTS --- */
+.section {
+  background: var(--bg-card);
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.section:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+/* --- FORMS --- */
+.kv { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+.kv > div { display: flex; flex-direction: column; gap: 4px; }
+.kv > div > label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+input[type="text"], input[type="number"], textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f9fafb;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  width: 100%;
+  min-width: 140px;
+}
+input:focus, textarea:focus {
+  background: #fff;
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+textarea {
+  min-height: 120px;
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+/* --- BUTTONS --- */
+button {
+  padding: 10px 18px;
+  margin-right: 8px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+button:active { transform: translateY(1px); }
+button:hover { filter: brightness(110%); transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-secondary { background: var(--secondary); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-warning { background: var(--warning); color: #fff; }
+
+/* --- CARDS & LISTS --- */
+.card {
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: #fafafa;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: #cbd5e1; background: #fff; }
+.card-title { font-weight: 700; margin-bottom: 8px; font-size: 1rem; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+
+.hidden { display: none !important; }
+
+/* --- HELP & BADGES --- */
+.help {
+  background: var(--secondary);
+  color: #fff;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: help;
+  margin-left: 8px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.help:hover { opacity: 1; }
+
+.tooltip {
+  margin-top: 10px;
+  padding: 12px;
+  background: #eff6ff;
+  border-left: 4px solid var(--secondary);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #1e3a8a;
+  animation: slideDown 0.2s ease-out;
+}
+
+.badge-argento {
+  display: inline-block;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  margin-left: 6px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.3);
+}
+
+.linkline { margin-bottom: 4px; }
+.linkline a { color: var(--secondary); text-decoration: none; font-weight: 500; word-break: break-all; font-size: 0.9rem; }
+.linkline a:hover { text-decoration: underline; }
+
+/* --- MODALS & PANELS --- */
+.legend-btn { position: fixed; top: 20px; right: 20px; z-index: 3000; }
+.legend-btn button { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+.legend-panel {
+  position: fixed; top: 70px; right: 20px; z-index: 3000;
+  width: min(500px, 90vw);
+  max-height: min(80vh, 800px);
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+.legend-panel h3 { color: var(--secondary-dark); border-bottom: 2px solid #eff6ff; padding-bottom: 10px; margin-bottom: 14px; font-size: 1.1rem; }
+.legend-panel h4 { margin: 18px 0 8px; color: var(--text-main); font-size: 0.95rem; }
+.legend-panel ul { padding-left: 20px; margin-bottom: 10px; }
+.legend-panel li { margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted); }
+
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  width: min(700px, 92vw);
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.modal h3 { font-size: 1.25rem; color: var(--text-main); margin-bottom: 6px; }
+.modal .list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  margin: 16px 0;
+}
+.modal .list div {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+}
+.modal .list div:last-child { border-bottom: none; }
+.modal .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+
+/* --- ANIMATIONS --- */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+  .kv { flex-direction: column; align-items: stretch; gap: 12px; }
+  .kv > div { width: 100%; }
+  input[type="text"], input[type="number"] { width: 100%; }
+  .legend-panel { top: 10px; right: 10px; left: 10px; width: auto; max-height: 70vh; }
+  .legend-btn { bottom: 20px; top: auto; right: 20px; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+./* layout fisso 3 colonne per Nome / OFF / Potere */
+.kv-att{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.kv-att > div{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kv-att input{
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<div class="legend-btn">
+  <button id="btnLegenda" class="btn-secondary">📘 Legenda</button>
+</div>
+
+<div id="legendPanel" class="legend-panel hidden">
+  <h3>📘 Guida (per chi usa il file)</h3>
+  <h4>1) Impatto REAL ⏱️</h4>
+  <ul>
+    <li>Metti <b>Giorno</b> GG/MM e <b>Ora</b> HH:MM.</li>
+    <li>Viene applicato a tutti i REAL e mostrato/exportato.</li>
+  </ul>
+
+  <h4>2) Attaccanti 👥</h4>
+  <ul>
+    <li>OFF può essere anche <b>0</b> (serve solo se deve fare argentiere senza off, oppure per avere nome in lista).</li>
+    <li>Argento: indica quante conquiste può fare per tipo.</li>
+    <li>Puoi importare massivo o inserire a mano.</li>
+    <li>Puoi <b>modificare/eliminare</b> (modifica ti porta su al form).</li>
+  </ul>
+
+  <h4>3) Target REAL 🔗</h4>
+  <ul>
+    <li>Formato 2 righe consigliato: <code>Tipo: Nome</code> + riga sotto con <code>l+k://...</code></li>
+    <li>Oppure 1 riga con points: <code>l+k://... 1768 points</code> (tipo calcolato dai points).</li>
+    <li>Duplicati dentro REAL: rimossi automaticamente.</li>
+  </ul>
+
+  <h4>4) Target FAKE 🎭</h4>
+  <ul>
+    <li>Stesso formato dei REAL.</li>
+    <li>Ogni fake viene assegnato a massimo <b>5 attaccanti casuali</b> (UNA SOLA VOLTA all’inserimento).</li>
+    <li>Se non inserisci data/ora fake, ti chiede se vuoi usare la stessa dei REAL.</li>
+  </ul>
+
+  <h4>5) REAL vs FAKE (stesso link) ⚠️</h4>
+  <p>Se un link è sia in REAL che in FAKE, appare un popup (solo quando importi i link) e scegli: entrambi / solo real / solo fake.</p>
+
+  <h4>6) Assegnazione REAL ⚙️</h4>
+  <ul>
+    <li>Ogni target REAL ha <b>un solo argentiere</b> (se disponibile).</li>
+    <li>Se mancano argentieri rispetto ai target: te lo segnala a banner.</li>
+    <li>Le OFF devono arrivare <b>al minimo</b> impostato. Se non bastano: banner con i target sotto minimo.</li>
+    <li>Se le OFF totali sono più del minimo totale: ti chiede se vuoi usarle o fermarti al minimo.</li>
+  </ul>
+
+  <h4>7) Eliminare target REAL</h4>
+  <p>Dopo l’assegnazione puoi eliminare un target REAL con “🗑️ Elimina target”.</p>
+
+  <h4>8) Export 📤</h4>
+  <p>Export per attaccante: prima REAL poi FAKE (oppure solo real/solo fake).</p>
+</div>
+
+<h1>🎯 Gestione Coordinato</h1>
+
+<div class="section">
+  <h2 style="display:flex; justify-content:space-between; align-items:center;">
+  <span>⏱️ Impatto REAL <span class="help" onclick="toggleHelp('helpImpact')">?</span></span>
+  <button class="btn-danger" id="btnReset" style="margin:0;">🗑️ Reset Totale</button>
+</h2>
+
+  <div id="helpImpact" class="tooltip hidden">
+    Imposta giorno/ora dei REAL (non si resetta quando aggiungi attaccanti).
+  </div>
+  <div class="kv">
+    <div><label>Giorno</label> <input id="giorno" type="date"></div>
+<div><label>Ora</label> <input id="ora" type="time"></div>
+  </div>
+</div>
+
+<div class="section" id="attBanner">
+  <h2>📥 Importa attaccanti (massivo) <span class="help" onclick="toggleHelp('helpImport')">?</span></h2>
+  <div id="helpImport" class="tooltip hidden">
+    Una riga per attaccante. Esempi:<br>
+    <code>massimo 300k off arg x 3 city</code><br>
+    <code>panza e nani 245k off arg x 6 città e 6 fortezze</code><br>
+    <code>Oropuro off 0 arg x 1 city</code>
+      <br><code>Mario potere 2m off 450k arg x 3 city</code>
+  </div>
+  <textarea id="importAttaccanti" placeholder="Incolla qui la lista..."></textarea><br>
+  <button class="btn-secondary" id="btnImporta">Importa Lista</button>
+
+  <div id="missingPowerBox" class="card hidden" style="margin-top:12px;">
+    <div class="card-title">⚠️ Attaccanti senza potere</div>
+    <div class="muted" style="margin-bottom:10px;">
+      Per questi nomi il “potere” non era scritto. Inseriscilo qui (accetta 2000, 2k, 2m).
+    </div>
+    <div id="missingPowerList"></div>
+    <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button id="btnConfirmMissingPower" class="btn-primary">Conferma poteri</button>
+      <button id="btnCancelMissingPower" class="btn-secondary">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>➕ Aggiungi / Modifica attaccante <span class="help" onclick="toggleHelp('helpAtt')">?</span></h2>
+  <div id="helpAtt" class="tooltip hidden">
+    Nome obbligatorio. OFF obbligatorio (può essere 0). Argento opzionale.
+  </div>
+  <div class="kv kv-att">
+
+  <div>
+    <label for="nome">Nome</label>
+    <input id="nome" type="text">
+  </div>
+
+  <div>
+    <label for="off">OFF</label>
+    <input id="off" type="number" placeholder="0 consentito">
+  </div>
+
+  <div>
+    <label for="potere">Potere</label>
+    <input id="potere" type="number" min="0" step="1" required placeholder="es. 1200">
+  </div>
+</div>
+  <h3>💰 Argento (conquiste)</h3>
+  <div class="kv">
+    <div>
+      <label><input type="checkbox" id="chkCitta"> 🏙️ Città</label>
+      <input id="cittaQty" type="number" class="hidden" placeholder="Q.tà">
+    </div>
+    <div>
+      <label><input type="checkbox" id="chkPiazza"> 🏰 PiazzaForte</label>
+      <input id="piazzaQty" type="number" class="hidden" placeholder="Q.tà">
+    </div>
+    <div>
+      <label><input type="checkbox" id="chkCastello"> 🏯 Castello</label>
+      <input id="castelloQty" type="number" class="hidden" placeholder="Q.tà">
+    </div>
+  </div>
+
+  <button class="btn-primary" id="btnSalvaAtt">Aggiungi</button>
+  <button class="btn-warning hidden" id="btnAnnullaEdit">Annulla modifica</button>
+</div>
+
+<div class="section">
+  <h2>👥 Attaccanti</h2>
+  <div id="listaAttaccanti"></div>
+</div>
+
+<div class="section">
+  <h2>⚙️ Truppe necessarie (minime) <span class="help" onclick="toggleHelp('helpReq')">?</span></h2>
+  <div id="helpReq" class="tooltip hidden">
+    Minimo OFF per target REAL (serve per arrivare almeno a questo numero).
+  </div>
+  <div class="kv">
+    <div><label>🏙️ Città</label> <input id="reqCitta" type="number"></div>
+    <div><label>🏰 PiazzaForte</label> <input id="reqPiazza" type="number"></div>
+    <div><label>🏯 Castello</label> <input id="reqCastello" type="number"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>🔗 Inserisci target REAL</h2>
+  <textarea id="realInput" placeholder="Formato 2 righe:
+Città: Nome
+l+k://...
+
+Oppure 1 riga:
+l+k://coordinates?... 1768 points"></textarea><br>
+  <button class="btn-primary" id="btnAnalizzaReal">Analizza REAL</button>
+  <button class="btn-secondary" id="btnAssegnaReal">Assegna REAL</button>
+</div>
+
+<div class="section">
+  <h2>🎭 Inserisci target FAKE</h2>
+  <div class="small" style="margin-bottom:8px;">Se lasci vuoti giorno/ora fake, ti chiede se vuoi usare la stessa dei REAL.</div>
+  <textarea id="fakeInput" placeholder="Stesso formato dei REAL"></textarea><br>
+
+  <div class="kv" style="margin-top:12px;">
+    <div><label>Giorno</label> <input id="giornoFake" type="date"></div>
+<div><label>Ora</label> <input id="oraFake" type="time"></div>
+
+  </div>
+
+  <button class="btn-secondary" id="btnAggiungiFake">Aggiungi FAKE</button>
+</div>
+
+<div class="section">
+  <h2>📊 Risultato</h2>
+  <div id="listaLink"></div>
+
+  <hr class="sep">
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    <button class="btn-primary" id="btnExportAll">📤 Export unico</button>
+    <button class="btn-secondary" id="btnExportReal">📤 Export REAL</button>
+    <button class="btn-secondary" id="btnExportFake">📤 Export FAKE</button>
+  </div>
+</div>
+
+<div id="crossModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>⚠️ Link presente sia in REAL che in FAKE</h3>
+    <div class="small">Scegli come mantenerlo.</div>
+    <div class="list" id="crossList"></div>
+    <div class="actions">
+      <button class="btn-secondary" id="btnKeepBoth">Tieni entrambi</button>
+      <button class="btn-primary" id="btnKeepOnlyReal">Solo REAL</button>
+      <button class="btn-danger" id="btnKeepOnlyFake">Solo FAKE</button>
+      <button class="btn-warning" id="btnCloseCross">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="infoModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="infoTitle">Info</h3>
+    <div class="small" id="infoSubtitle"></div>
+    <div class="list" id="infoList"></div>
+    <div class="actions">
+      <button class="btn-secondary" id="btnInfoClose">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="fakeQuotaModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>🎭 Quanti FAKE per ogni attaccante?</h3>
+    <div class="small" style="margin-bottom:12px;">
+      Inserisci il numero per ciascun attaccante. Oppure usa “Uguali per tutti”.
+    </div>
+
+    <div style="display:flex; gap:18px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
+  <label style="display:flex; gap:8px; align-items:center; cursor:pointer;">
+    <input type="radio" name="fakeQuotaMode" id="fakeModeCustom" checked>
+    Personalizzato (numero diverso per attaccante)
+  </label>
+
+  <label style="display:flex; gap:8px; align-items:center; cursor:pointer;">
+    <input type="radio" name="fakeQuotaMode" id="fakeModeAllSame">
+    Uguale per tutti
+  </label>
+</div>
+
+<div class="kv" style="align-items:flex-end; margin-bottom:12px;">
+  <div>
+    <label>N FAKE ciascuno</label>
+    <input id="fakeQuotaAll" type="number" min="0" step="1" placeholder="es. 3">
+  </div>
+  <div>
+    <button class="btn-secondary" id="btnFakeQuotaApplyAll" style="margin-top:0;">Applica N a tutti</button>
+  </div>
+</div>
+
+
+
+    <div class="list" id="fakeQuotaList"></div>
+
+    <div class="actions">
+      <button class="btn-secondary" id="btnFakeQuotaCancel">Annulla</button>
+      <button class="btn-primary" id="btnFakeQuotaOk">OK — Assegna FAKE</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="confirmModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="confirmTitle">Conferma</h3>
+    <div class="small" id="confirmText" style="margin:16px 0; font-size:1rem;"></div>
+    <div class="actions">
+      <button class="btn-secondary" id="btnConfirmNo">No</button>
+      <button class="btn-primary" id="btnConfirmYes">Sì</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const LS = "coord_stable_v2";
+  const $ = (id)=>document.getElementById(id);
+
+  let attaccanti = [];
+  let realTargets = [];
+  let fakeTargets = [];
+
+  // editing
+  let editingIndex = null;
+
+  // cross-dup modal state
+  let dupInProgress = false;
+  let dupLinkTemp = null;
+
+  // confirm modal
+  let confirmCb = null;
+
+  // UI helpers
+  window.toggleHelp = (id)=> { const e=$(id); if(e) e.classList.toggle("hidden"); };
+  $("btnLegenda").addEventListener("click", ()=> $("legendPanel").classList.toggle("hidden"));
+  $("legendPanel").addEventListener("mouseleave", ()=> $("legendPanel").classList.add("hidden"));
+$("legendPanel").addEventListener("click", ()=> $("legendPanel").classList.add("hidden"));
+
+
+  function escapeHtml(s){
+    return String(s??"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+  }
+
+  // Helpers numeri / icone / date
+  function fmtK(v){
+    const n = Number(v);
+    if(!Number.isFinite(n)) return "0";
+    const abs = Math.abs(n);
+    if(abs < 1000) return String(Math.trunc(n));
+    if(abs < 1_000_000){
+      const x = n/1000;
+      const dec = Math.abs(x) < 10 ? 1 : 0;
+      return x.toFixed(dec).replace(/\.0$/,"")+"k";
+    }
+    const x = n/1_000_000;
+    const dec = Math.abs(x) < 10 ? 1 : 0;
+    return x.toFixed(dec).replace(/\.0$/,"")+"m";
+  }
+
+  function iconTipo(tipo){
+    const t = String(tipo||"").toLowerCase();
+    if(t==="off") return "⚔️";
+    if(t==="def") return "🛡️";
+    if(t==="ponte") return "🌉";
+    if(t==="muro") return "🧱";
+    return "📌";
+  }
+
+  function dateToGGMM(dateStr){
+    // input yyyy-mm-dd -> "GG/MM"
+    if(!dateStr) return "";
+    const m = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return "";
+    const dd = m[3], mm = m[2];
+    return `${dd}/${mm}`;
+  }
+  function ggmmToDate(ggmm){
+    // "GG/MM" -> yyyy-mm-dd (anno corrente)
+    const m = String(ggmm||"").match(/^(\d{2})\/(\d{2})$/);
+    if(!m) return "";
+    const dd=m[1], mm=m[2];
+    const y = new Date().getFullYear();
+    return `${y}-${mm}-${dd}`;
+  }
+  function isGGMM(s){ return /^(\d{2})\/(\d{2})$/.test(String(s||"").trim()); }
+  function isHHMM(s){ return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(s||"").trim()); }
+
+  function showInfo(title, subtitle, lines){
+    $("infoTitle").textContent = title || "Info";
+    $("infoSubtitle").textContent = subtitle || "";
+    $("infoList").innerHTML = (lines||[]).map(x=>`<div>${escapeHtml(x)}</div>`).join("");
+    $("infoModal").classList.remove("hidden");
+  }
+  function closeInfo(){ $("infoModal").classList.add("hidden"); }
+  $("btnInfoClose").addEventListener("click", closeInfo);
+  $("infoModal").addEventListener("click", (e)=>{ if(e.target===$("infoModal")) closeInfo(); });
+
+  function showConfirm(title, text, cb){
+    $("confirmTitle").textContent = title || "Conferma";
+    $("confirmText").textContent = text || "";
+    confirmCb = cb || null;
+    $("confirmModal").classList.remove("hidden");
+  }
+  function closeConfirm(){ $("confirmModal").classList.add("hidden"); confirmCb=null; }
+  $("btnConfirmNo").addEventListener("click", ()=>{ const cb=confirmCb; closeConfirm(); if(cb) cb(false); });
+  $("btnConfirmYes").addEventListener("click", ()=>{ const cb=confirmCb; closeConfirm(); if(cb) cb(true); });
+  $("confirmModal").addEventListener("click", (e)=>{ if(e.target===$("confirmModal")) closeConfirm(); });
+  function safeVal(id){
+    const el = $(id);
+    return el ? (el.value ?? "") : "";
+  }
+  function safeChecked(id){
+    const el = $(id);
+    return el ? !!el.checked : false;
+  }
+
+  function saveAll(){
+    const data = {
+      attaccanti,
+      realTargets,
+      fakeTargets,
+      fields: {
+        giorno: safeVal("giorno"),
+        ora: safeVal("ora"),
+        giornoFake: safeVal("giornoFake"),
+        oraFake: safeVal("oraFake"),
+        maxFakePerPlayer: safeVal("maxFakePerPlayer"),
+        txtReali: safeVal("txtReali"),
+        txtFake: safeVal("txtFake")
+      }
+    };
+    try{
+      localStorage.setItem(LS, JSON.stringify(data));
+    }catch(e){
+      console.warn("saveAll fallito:", e);
+    }
+  }
+
+  function loadAll(){
+    try{
+      const raw = localStorage.getItem(LS);
+      if(!raw) return;
+      const d = JSON.parse(raw);
+
+      attaccanti = Array.isArray(d.attaccanti) ? d.attaccanti : [];
+      realTargets = Array.isArray(d.realTargets) ? d.realTargets : [];
+      fakeTargets = Array.isArray(d.fakeTargets) ? d.fakeTargets : [];
+
+      const f = d.fields || {};
+      if($("giorno")) $("giorno").value = f.giorno || "";
+      if($("ora")) $("ora").value = f.ora || "";
+      if($("giornoFake")) $("giornoFake").value = f.giornoFake || "";
+      if($("oraFake")) $("oraFake").value = f.oraFake || "";
+      if($("maxFakePerPlayer")) $("maxFakePerPlayer").value = (f.maxFakePerPlayer ?? "");
+      if($("txtReali")) $("txtReali").value = f.txtReali || "";
+      if($("txtFake")) $("txtFake").value = f.txtFake || "";
+    }catch(e){
+      console.warn("loadAll fallito:", e);
+    }
+  }
+
+   // fake quota modal
+let fakeQuotaCb = null;
+
+function openFakeQuotaModal(attNames, cb){
+  fakeQuotaCb = cb || null;
+    if(!Array.isArray(attNames) || attNames.length === 0){
+    alert("Non ci sono attaccanti caricati.\nInserisci prima almeno un attaccante.");
+    return;
+  }
+
+
+  // lista completa, senza duplicati
+  attNames = Array.isArray(attNames) ? attNames : [];
+  const seen = new Set();
+  attNames = attNames
+    .map(n=>String(n||"").trim())
+    .filter(n=>n && !seen.has(n) && (seen.add(n), true));
+
+  // reset UI
+  $("fakeQuotaAll").value = "";
+
+  $("fakeQuotaList").innerHTML = attNames.map((name, i)=>`
+    <div style="display:flex; gap:12px; align-items:center; justify-content:space-between;">
+      <div style="font-weight:700;">${escapeHtml(name)}</div>
+      <div>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          id="fakeQuota_${i}"
+          data-name="${escapeHtml(name)}"
+          style="width:110px;"
+          placeholder="0"
+        >
+      </div>
+    </div>
+  `).join("");
+
+  $("fakeQuotaModal").classList.remove("hidden");
+
+  // modalità default: personalizzato
+  if($("fakeModeCustom") && $("fakeModeAllSame")){
+    $("fakeModeCustom").checked = true;
+    $("fakeModeAllSame").checked = false;
+
+    const syncModeUI = ()=>{
+      const allSame = $("fakeModeAllSame").checked;
+
+      $("fakeQuotaAll").disabled = !allSame;
+      $("btnFakeQuotaApplyAll").disabled = !allSame;
+
+      const inputs = $("fakeQuotaList").querySelectorAll("input[id^='fakeQuota_']");
+      inputs.forEach(inp => inp.disabled = allSame);
+
+      // se entro in "uguale per tutti" e c'è già un valore, applicalo
+      if(allSame){
+        const v = Math.max(0, Math.floor(Number($("fakeQuotaAll").value)||0));
+        if(v>0) inputs.forEach(inp => inp.value = String(v));
+      }
+    };
+
+    $("fakeModeCustom").onchange = syncModeUI;
+    $("fakeModeAllSame").onchange = syncModeUI;
+
+    syncModeUI();
+  }
+}
+
+function closeFakeQuotaModal(){
+  $("fakeQuotaModal").classList.add("hidden");
+  fakeQuotaCb = null;
+}
+
+$("btnFakeQuotaCancel").addEventListener("click", closeFakeQuotaModal);
+$("fakeQuotaModal").addEventListener("click", (e)=>{
+  if(e.target === $("fakeQuotaModal")) closeFakeQuotaModal();
+});
+
+$("btnFakeQuotaApplyAll").addEventListener("click", ()=>{
+  // applica N a tutti (compila gli input)
+  const v = Math.max(0, Math.floor(Number($("fakeQuotaAll").value)||0));
+  const inputs = $("fakeQuotaList").querySelectorAll("input[id^='fakeQuota_']");
+  inputs.forEach(inp => inp.value = String(v));
+});
+
+$("fakeQuotaAll").addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){
+    e.preventDefault();
+    $("btnFakeQuotaApplyAll").click();
+  }
+});
+
+$("btnFakeQuotaOk").addEventListener("click", ()=>{
+  const inputs = $("fakeQuotaList").querySelectorAll("input[id^='fakeQuota_']");
+  const map = {};
+  let total = 0;
+
+  inputs.forEach(inp=>{
+    const name = inp.getAttribute("data-name");
+    const v = Math.max(0, Math.floor(Number(inp.value)||0));
+    map[name] = v;
+    total += v;
+  });
+
+  if(total <= 0){
+    alert("Inserisci almeno 1 FAKE per almeno un attaccante (totale > 0).");
+    return;
+  }
+
+  const cb = fakeQuotaCb;
+  closeFakeQuotaModal();
+  if(cb) cb(map);
+});
+
+  // Attaccanti form
+  function toggleQty(elCheckbox, elQty){
+    elQty.classList.toggle("hidden", !elCheckbox.checked);
+  }
+  const chkCitta = $("chkCitta"), chkPiazza = $("chkPiazza"), chkCastello = $("chkCastello");
+  const cittaQty = $("cittaQty"), piazzaQty = $("piazzaQty"), castelloQty = $("castelloQty");
+
+  chkCitta.addEventListener("change", ()=>toggleQty(chkCitta, cittaQty));
+  chkPiazza.addEventListener("change", ()=>toggleQty(chkPiazza, piazzaQty));
+  chkCastello.addEventListener("change", ()=>toggleQty(chkCastello, castelloQty));
+
+  function resetAttForm(){
+    $("nome").value="";
+    $("off").value="";
+    $("potere").value="";
+    chkCitta.checked=false; cittaQty.value=""; cittaQty.classList.add("hidden");
+    chkPiazza.checked=false; piazzaQty.value=""; piazzaQty.classList.add("hidden");
+    chkCastello.checked=false; castelloQty.value=""; castelloQty.classList.add("hidden");
+    editingIndex = null;
+    $("btnSalvaAtt").textContent="Aggiungi";
+    $("btnAnnullaEdit").classList.add("hidden");
+  }
+  $("btnAnnullaEdit").addEventListener("click", resetAttForm);
+
+  function addOrUpdateAtt(){
+    const nome = $("nome").value.trim();
+    const offRaw = $("off").value;
+    const potRaw = $("potere").value;
+    if(potRaw === ""){ alert("Inserisci Potere"); return; }
+
+    if(!nome){ alert("Inserisci nome"); return; }
+    if(offRaw===""){ alert("Inserisci OFF (può essere 0)"); return; }
+
+    const off = Number(offRaw||0);
+    if(!Number.isFinite(off) || off<0){ alert("OFF deve essere un numero >= 0"); return; }
+
+    const potere = Number(potRaw);
+    if(!Number.isFinite(potere) || potere < 0){ alert("Potere deve essere un numero >= 0"); return; }
+
+
+    const arg = {
+      citta: chkCitta.checked ? (Number(cittaQty.value)||0) : 0,
+      piazza: chkPiazza.checked ? (Number(piazzaQty.value)||0) : 0,
+      castello: chkCastello.checked ? (Number(castelloQty.value)||0) : 0
+    };
+
+    // almeno qualcosa (OFF>0 oppure argento>0)
+    if(off<=0 && !(arg.citta||arg.piazza||arg.castello)){
+      alert("OFF=0 e argento=0: non serve. Metti almeno OFF>0 oppure argento.");
+      return;
+    }
+
+   const obj = { nome, off, potere, argento: arg };
+
+    if(editingIndex!==null){
+      attaccanti.splice(editingIndex, 1);
+    }
+    attaccanti.unshift(obj); // ultimo in cima
+
+    resetAttForm();
+    renderAttaccanti();
+    saveAll();
+  }
+  $("btnSalvaAtt").addEventListener("click", addOrUpdateAtt);
+
+  function editAtt(i){
+    const a = attaccanti[i];
+    if(!a) return;
+    editingIndex = i;
+
+    $("nome").value = a.nome;
+    $("off").value = a.off;
+    $("potere").value = (a.potere ?? "");
+
+
+    chkCitta.checked = (a.argento.citta||0)>0;
+    chkPiazza.checked = (a.argento.piazza||0)>0;
+    chkCastello.checked = (a.argento.castello||0)>0;
+
+    cittaQty.value = a.argento.citta || "";
+    piazzaQty.value = a.argento.piazza || "";
+    castelloQty.value = a.argento.castello || "";
+
+    cittaQty.classList.toggle("hidden", !chkCitta.checked);
+    piazzaQty.classList.toggle("hidden", !chkPiazza.checked);
+    castelloQty.classList.toggle("hidden", !chkCastello.checked);
+
+    $("btnSalvaAtt").textContent="Aggiorna";
+    $("btnAnnullaEdit").classList.remove("hidden");
+
+    // scroll al banner del form
+    $("attBanner").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  function delAtt(i){
+    if(!confirm("Eliminare questo attaccante?")) return;
+    attaccanti.splice(i,1);
+    resetAttForm();
+    renderAttaccanti();
+    renderTargets();
+    saveAll();
+  }
+
+  function renderAttaccanti(){
+    $("listaAttaccanti").innerHTML = attaccanti.map((a,i)=>`
+      <div class="card">
+        <div class="card-title">
+           <span>👤 ${escapeHtml(a.nome)}</span>
+           <span class="small" style="font-weight:normal; color:#666;">
+  OFF: <b>${fmtK(a.off)}</b> | Potere: <b>${fmtK(a.potere ?? a.off)}</b>
+</span>
+        </div>
+        <div class="small" style="margin-bottom:10px;">
+          💰 Argento: 🏙️ ${a.argento.citta} | 🏰 ${a.argento.piazza} | 🏯 ${a.argento.castello}
+        </div>
+        <button class="btn-secondary" onclick="window.__editAtt(${i})">Modifica</button>
+        <button class="btn-danger" onclick="window.__delAtt(${i})">Elimina</button>
+      </div>
+    `).join("") || "<i>Nessun attaccante</i>";
+  }
+  window.__editAtt = editAtt;
+  window.__delAtt = delAtt;
+
+  // Import massivo (come prima, robusto)
+  function normalizeText(s){
+    return String(s||"")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\p{L}\p{N}\s:+/.-]/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+  function normalizeTipoToken(tok){
+    const t=(tok||"").toLowerCase().trim();
+    if(t==="city" || t.startsWith("citt")) return "citta";
+    if(t==="pf" || t.startsWith("piazza") || t.startsWith("fort")) return "piazza";
+    if(t.startsWith("cast")) return "castello";
+    return null;
+  }
+  function parseNumberToken(tok){
+    const t=(tok||"").trim().toLowerCase().replace(",",".");
+    const m=t.match(/^(\d+(?:\.\d+)?)(k|m)?$/i);
+    if(!m) return null;
+    const num=parseFloat(m[1]);
+    if(!isFinite(num)) return null;
+    const suf=(m[2]||"").toLowerCase();
+    if(suf==="k") return Math.round(num*1000);
+    if(suf==="m") return Math.round(num*1000000);
+    return Math.round(num);
+  }
+
+  // Potere obbligatorio (import massivo)
+  function parsePotereObbligatorio(tokens){
+    const keys = new Set(["potere","pot","power","pow"]);
+    for(let i=0;i<tokens.length;i++){
+      const t=(tokens[i]||"").toLowerCase();
+      if(keys.has(t)){
+        const after = parseNumberToken(tokens[i+1]||"");
+        if(after!==null) return after;
+        const before = parseNumberToken(tokens[i-1]||"");
+        if(before!==null) return before;
+        return null;
+      }
+    }
+    return null;
+  }
+
+  function showMissingPowerUI(missing){
+    const box = $("missingPowerBox");
+    const list = $("missingPowerList");
+
+    list.innerHTML = missing.map((m, i)=>`
+      <div class="kv" style="grid-template-columns: 1fr 160px 140px; gap:10px; align-items:center; margin-bottom:8px;">
+        <div style="font-weight:700;">${escapeHtml(m.nome)}</div>
+        <input id="mp_${i}" type="text" placeholder="es. 2m / 2000 / 2k">
+        <div class="muted">OFF: ${fmtK(m.off)}</div>
+      </div>
+    `).join("");
+
+    box.classList.remove("hidden");
+
+    $("btnConfirmMissingPower").onclick = ()=>{
+      for(let i=0;i<missing.length;i++){
+        const raw = ($(`mp_${i}`).value||"").trim().toLowerCase().replace(",",".");
+        const val = parseNumberToken(raw);
+        if(val===null || val<=0){
+          alert(`Potere non valido per: ${missing[i].nome}`);
+          return;
+        }
+        missing[i].potere = val;
+      }
+
+      missing.forEach(m=>{
+        attaccanti.unshift({
+          nome: m.nome,
+          off: Number(m.off)||0,
+          potere: Number(m.potere)||0,
+          argento: {
+            citta: m.argento?.citta||0,
+            piazza: m.argento?.piazza||0,
+            castello: m.argento?.castello||0
+          }
+        });
+      });
+
+      box.classList.add("hidden");
+      renderAttaccanti();
+      saveAll();
+      alert(`Ok: inseriti ${missing.length} poteri mancanti.`);
+    };
+
+    $("btnCancelMissingPower").onclick = ()=>{
+      box.classList.add("hidden");
+    };
+  }
+
+  function chooseOff(tokens){
+    for(let i=0;i<tokens.length;i++){
+      if(tokens[i]==="off"){
+        const n1=parseNumberToken(tokens[i+1]||"");
+        if(n1!==null) return {val:n1, idx:i+1, reason:"off-next"};
+        const n0=parseNumberToken(tokens[i-1]||"");
+        if(n0!==null) return {val:n0, idx:i-1, reason:"off-prev"};
+        return {val:0, idx:-1, reason:"off-missing"};
+      }
+    }
+    let best={val:0, idx:-1, reason:"max"};
+    for(let i=0;i<tokens.length;i++){
+      const n=parseNumberToken(tokens[i]);
+      if(n===null) continue;
+      if(n>best.val) best={val:n, idx:i, reason:"max"};
+    }
+    return best;
+  }
+  function parseArgento(tokens, offIdx){
+    const arg={citta:0,piazza:0,castello:0};
+    const warnings=[];
+    const isQty = (t)=>/^\d+$/.test(t);
+
+    for(let i=0;i<tokens.length;i++){
+      if(i===offIdx) continue;
+      const t=tokens[i];
+      const t1=tokens[i+1]||"";
+      const t2=tokens[i+2]||"";
+
+      if((t==="x" || t==="per") && isQty(t1)){
+        const tipo=normalizeTipoToken(t2);
+        if(tipo){
+          arg[tipo]+=parseInt(t1,10)||0;
+          i += 2;
+          continue;
+        }
+      }
+      if(isQty(t)){
+        const tipo=normalizeTipoToken(t1);
+        if(tipo){
+          arg[tipo]+=parseInt(t,10)||0;
+          i += 1;
+          continue;
+        }
+      }
+      if(t==="tante"){ warnings.push(`"tante" non è un numero: messo 0`); }
+    }
+    return {arg, warnings};
+  }
+  function extractName(originalLine){
+    const lower=originalLine.toLowerCase();
+    let cut=originalLine.length;
+    const idxOff = lower.search(/\boff\b/);
+    if(idxOff>=0) cut=Math.min(cut, idxOff);
+    const idxArg = lower.search(/\barg\b|\bargento\b/);
+    if(idxArg>=0) cut=Math.min(cut, idxArg);
+    const idxNum = lower.search(/\d/);
+    if(idxNum>=0) cut=Math.min(cut, idxNum);
+    return originalLine.slice(0,cut).trim() || originalLine.trim();
+  }
+
+  function importMassivo(){
+    const txt=$("importAttaccanti").value.trim();
+    if(!txt){ alert("Incolla una lista"); return; }
+    const lines=txt.split("\n").map(x=>x.trim()).filter(Boolean);
+
+    const offWarnings=[], otherWarnings=[], skipped=[], missing=[];
+    lines.forEach((line, idx)=>{
+      const norm = normalizeText(line);
+      const tokens = norm.split(" ").filter(Boolean);
+      const nome = extractName(line);
+      const offChosen = chooseOff(tokens);
+      const {arg, warnings} = parseArgento(tokens, offChosen.idx);
+
+      const hasArg = (arg.citta||0) + (arg.piazza||0) + (arg.castello||0) > 0;
+
+      if(offChosen.reason==="off-missing"){
+        offWarnings.push(`Riga ${idx+1}: trovato "off" ma numero mancante → OFF=0
+${line}`);
+      } else if(offChosen.val===0){
+        offWarnings.push(`Riga ${idx+1}: OFF non trovate o OFF=0 → OFF=0
+${line}`);
+      }
+      warnings.forEach(w=>otherWarnings.push(`Riga ${idx+1}: ${w}
+${line}`));
+
+      if((offChosen.val||0)<=0 && !hasArg){
+        skipped.push(`Riga ${idx+1}: niente OFF>0 e niente argento → scartata
+${line}`);
+        return;
+      }
+
+      const offVal = Number(offChosen.val)||0;
+
+      // potere: deve essere scritto (es: "potere 2m", "pot 2000", "power 2k")
+      const pot = parsePotereObbligatorio(tokens);
+      if(pot === null){
+        missing.push({
+          nome,
+          off: offVal,
+          argento: {
+            citta: arg.citta||0,
+            piazza: arg.piazza||0,
+            castello: arg.castello||0
+          }
+        });
+        return;
+      }
+
+      attaccanti.unshift({
+        nome,
+        off: offVal,
+        potere: pot,
+        argento: {
+          citta: arg.citta||0,
+          piazza: arg.piazza||0,
+          castello: arg.castello||0
+        }
+      });
+    });
+
+    // Se ci sono righe senza potere, mostra box per inserimento manuale e NON pulire textarea
+    if(missing.length){
+      showMissingPowerUI(missing);
+      return;
+    }
+
+    $("importAttaccanti").value="";
+    renderAttaccanti();
+    saveAll();
+
+    const info=[];
+    if(offWarnings.length) info.push("=== ATTACCANTI CON OFF=0 ===", ...offWarnings);
+    if(otherWarnings.length) info.push("=== ALTRE NOTE ===", ...otherWarnings);
+    if(skipped.length) info.push("=== SCARTATI ===", ...skipped);
+
+    if(info.length) showInfo("Import completato (controlli)", "Non blocco nulla: ti segnalo cosa controllare.", info.slice(0, 280));
+    else alert("Import completato.");
+  }
+  $("btnImporta").addEventListener("click", importMassivo);
+
+  // Target parsing
+  function normalizeTipoHeader(s){
+    const t=normalizeText(s);
+    if(t.startsWith("citt") || t==="city") return "citta";
+    if(t.startsWith("piazza") || t==="pf" || t.startsWith("fort")) return "piazza";
+    if(t.startsWith("cast")) return "castello";
+    return null;
+  }
+  function detectTipoFromPoints(line){
+    const m = line.match(/(\d+)\s*points/i);
+    if(!m) return null;
+    const pts = parseInt(m[1],10);
+    if(pts>=0 && pts<=290) return "castello";
+    if(pts>=1513 && pts<=1800) return "piazza";
+    if(pts>=10001 && pts<=10317) return "citta";
+    return null;
+  }
+  function parseTargetBlocks(text){
+    const lines=text.split("\n").map(s=>s.trim()).filter(Boolean);
+    const out=[];
+    for(let i=0;i<lines.length;i++){
+      const line=lines[i];
+      const m=line.match(/^([^:]+)\s*:\s*(.+)$/);
+      if(m){
+        const link=lines[i+1];
+        if(link && link.includes("://")){
+          const tipo=normalizeTipoHeader(m[1]);
+          if(tipo){
+            out.push({tipo, nome:m[2].trim(), link:link.trim(), rawHeader: line.trim(), rawLink: link.trim()});
+            i++;
+            continue;
+          }
+        }
+      }
+      if(line.includes("://") && /points/i.test(line)){
+        const tipo = detectTipoFromPoints(line);
+        if(tipo){
+          const link = line.split(/\s+/)[0].trim();
+          const nome = `Target ${tipo.toUpperCase()}`;
+          out.push({tipo, nome, link, rawHeader: `${tipo}: ${nome}`, rawLink: link});
+          continue;
+        }
+      }
+    }
+    return out;
+  }
+  function removeDupWithin(list){
+    const seen = new Set();
+    const out = [];
+    const removed = [];
+    for(const t of list){
+      const key = t.link.trim();
+      if(seen.has(key)){
+        removed.push(`${t.rawHeader}\n${t.rawLink}`);
+        continue;
+      }
+      seen.add(key);
+      out.push(t);
+    }
+    return {out, removed};
+  }
+
+  // Cross-dup (REAL vs FAKE) modal
+  function openCrossModal(link){
+    dupInProgress = true;
+    dupLinkTemp = link;
+    $("crossList").innerHTML = `<div>${escapeHtml(link)}</div>`;
+    $("crossModal").classList.remove("hidden");
+  }
+  function closeCrossModal(){ $("crossModal").classList.add("hidden"); }
+  function findFirstCrossDup(){
+    const setReal = new Set(realTargets.map(t=>t.link.trim()));
+    for(const f of fakeTargets){
+      const k = f.link.trim();
+      if(setReal.has(k)) return k;
+    }
+    return null;
+  }
+  function checkCrossDup(){
+    if(dupInProgress) return;
+    const link = findFirstCrossDup();
+    if(link) openCrossModal(link);
+  }
+  $("btnKeepBoth").addEventListener("click", ()=>{
+    closeCrossModal();
+    dupInProgress = false;
+    dupLinkTemp = null;
+    setTimeout(checkCrossDup, 50);
+  });
+  $("btnKeepOnlyReal").addEventListener("click", ()=>{
+    if(!dupLinkTemp) return;
+    fakeTargets = fakeTargets.filter(t=>t.link.trim()!==dupLinkTemp);
+    closeCrossModal();
+    dupInProgress = false;
+    dupLinkTemp = null;
+    renderTargets(); saveAll();
+    setTimeout(checkCrossDup, 50);
+  });
+  $("btnKeepOnlyFake").addEventListener("click", ()=>{
+    if(!dupLinkTemp) return;
+    realTargets = realTargets.filter(t=>t.link.trim()!==dupLinkTemp);
+    closeCrossModal();
+    dupInProgress = false;
+    dupLinkTemp = null;
+    renderTargets(); saveAll();
+    setTimeout(checkCrossDup, 50);
+  });
+  $("btnCloseCross").addEventListener("click", ()=>{
+    closeCrossModal();
+    dupInProgress = false;
+    dupLinkTemp = null;
+  });
+  $("crossModal").addEventListener("click", (e)=>{
+    if(e.target===$("crossModal")){
+      closeCrossModal();
+      dupInProgress = false;
+      dupLinkTemp = null;
+    }
+  });
+
+  // Helpers impatti
+  function getImpattoReal(){
+  const g = dateToGGMM($("giorno").value);
+  const o = $("ora").value.trim();
+  if(!isGGMM(g)) { alert("Giorno REAL obbligatorio"); return null; }
+  if(!isHHMM(o)) { alert("Ora REAL obbligatoria"); return null; }
+  return `${g} ${o}`;
+}
+
+  function getImpattoFakeOrAsk(cb){
+    const g = dateToGGMM($("giornoFake").value);
+    const o = $("oraFake").value.trim();
+    const realImp = getImpattoReal();
+    if(!realImp) return;
+
+    // se fake vuoti -> chiedi se usare real
+    if(!g && !o){
+      showConfirm("FAKE: data/ora non impostati",
+        `Vuoi usare lo stesso impatto dei REAL? (${realImp})`,
+        (yes)=>{
+          if(yes){
+            // mostra in pagina nei campi fake (così lo vedi)
+          $("giornoFake").value = ggmmToDate(dateToGGMM($("giorno").value));
+          $("oraFake").value = $("ora").value.trim();
+          cb(realImp);
+          }else{
+            alert("Ok, inserisci giorno/ora FAKE e riprova.");
+          }
+        }
+      );
+      return;
+    }
+
+    alert("FAKE: giorno e ora obbligatori (oppure lascia entrambi vuoti per usare i REAL).");
+    cb(`${g} ${o}`);
+  }
+
+  // Random helpers
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  // Add REAL
+  $("btnAnalizzaReal").addEventListener("click", ()=>{
+    if(attaccanti.length===0){ alert("Inserisci prima almeno un attaccante"); return; }
+    const imp = getImpattoReal(); if(!imp) return;
+
+    const parsed = parseTargetBlocks($("realInput").value);
+    if(!parsed.length){ alert("REAL: input non valido. Usa formato 2 righe o 1 riga con points."); return; }
+
+    const {out, removed} = removeDupWithin(parsed);
+    if(removed.length){
+      showInfo("Duplicati rimossi (REAL)", "Ho tenuto una sola copia per ogni link duplicato in REAL.", removed.slice(0, 200));
+    }
+
+    out.forEach(p=>{
+      realTargets.push({
+        tipo: p.tipo,
+        nome: p.nome,
+        link: p.link,
+        rawHeader: p.rawHeader,
+        rawLink: p.rawLink,
+        impatto: imp,
+        argentiere: null,      // nuovo nome
+        alloc: {},
+        reqOff: 0,
+        metMinimo: false
+      });
+    });
+
+    $("realInput").value="";
+    renderTargets();
+    saveAll();
+    checkCrossDup(); // solo dopo import link
+  });
+
+  // Add FAKE
+  $("btnAggiungiFake").addEventListener("click", ()=>{
+        // TEST: apri modale quote (poi lo colleghiamo all'assegnazione)
+    openFakeQuotaModal(attaccanti.map(a=>a.nome), (m)=>{ console.log("QUOTE FAKE:", m); });
+    return;
+
+    if(attaccanti.length===0){ alert("Inserisci prima almeno un attaccante"); return; }
+
+    getImpattoFakeOrAsk((imp)=>{
+      const parsed = parseTargetBlocks($("fakeInput").value);
+      if(!parsed.length){ alert("FAKE: input non valido. Usa formato 2 righe o 1 riga con points."); return; }
+
+      const {out, removed} = removeDupWithin(parsed);
+      if(removed.length){
+        showInfo("Duplicati rimossi (FAKE)", "Ho tenuto una sola copia per ogni link duplicato in FAKE.", removed.slice(0, 200));
+      }
+
+      out.forEach(p=>{
+        // assegnazione casuale UNA SOLA VOLTA: se salvata resta quella
+        const pick = shuffle([...attaccanti.map(a=>a.nome)]).slice(0, 5);
+
+        fakeTargets.push({
+          tipo: p.tipo,
+          nome: p.nome,
+          link: p.link,
+          rawHeader: p.rawHeader,
+          rawLink: p.rawLink,
+          impatto: imp,
+          assigned: pick
+        });
+      });
+
+      $("fakeInput").value="";
+      renderTargets();
+      saveAll();
+      checkCrossDup(); // solo dopo import link
+    });
+  });
+
+  // Assegnazione REAL (argentiere 1 e 1, minimi obbligatori, banner mancanze, extra off scelta)
+  $("btnAssegnaReal").addEventListener("click", ()=>{
+    if(attaccanti.length===0){ alert("Inserisci prima almeno un attaccante"); return; }
+    if(realTargets.length===0){ alert("Inserisci prima dei target REAL"); return; }
+
+    const reqC=Number($("reqCitta").value);
+    const reqP=Number($("reqPiazza").value);
+    const reqCA=Number($("reqCastello").value);
+    if(!(reqC>0) || !(reqP>0) || !(reqCA>0)){
+      alert("Inserisci truppe minime (numeri > 0) per Città/PiazzaForte/Castello.");
+      return;
+    }
+    const req={citta:reqC,piazza:reqP,castello:reqCA};
+
+    // reset per target
+    realTargets.forEach(t=>{
+      t.argentiere=null;
+      t.alloc={};
+      t.reqOff=req[t.tipo]||0;
+      t.metMinimo=false;
+    });
+
+    // Calcolo totali off vs minimi
+    const totalMin = realTargets.reduce((s,t)=>s+(t.reqOff||0),0);
+    const totalOff = attaccanti.reduce((s,a)=>s+(Number(a.off)||0),0);
+
+    const proceedAssign = (useExtra)=>{
+      // 1) ASSEGNA ARGENTIERE: 1 solo per target, basato su quantità argento per tipo
+      const silverRem = {};
+      attaccanti.forEach(a=>{
+        silverRem[a.nome]={
+          citta:Number(a.argento.citta)||0,
+          piazza:Number(a.argento.piazza)||0,
+          castello:Number(a.argento.castello)||0
+        };
+      });
+
+      for(const t of realTargets){
+        for(const a of attaccanti){
+          if((silverRem[a.nome]?.[t.tipo]||0)>0){
+            t.argentiere=a.nome;
+            silverRem[a.nome][t.tipo]--;
+            break;
+          }
+        }
+      }
+
+      const noArg = realTargets
+        .map((t,i)=>({t,i}))
+        .filter(x=>!x.t.argentiere)
+        .map(x=>`Target ${x.i+1} (${x.t.tipo.toUpperCase()}): ${x.t.rawHeader}\n${x.t.link}`);
+
+      if(noArg.length){
+        showInfo("⚠️ Target REAL senza argentiere",
+          "Alcuni target non hanno un argentiere assegnato (argento insufficiente).",
+          noArg.slice(0,200)
+        );
+      }
+
+      // 2) DISTRIBUZIONE OFF: deve raggiungere MINIMO per ogni target (se possibile)
+      const offRem = {};
+      attaccanti.forEach(a=>offRem[a.nome]=Number(a.off)||0);
+
+      const need = realTargets.map(t=>Number(t.reqOff)||0);
+
+      function alloc(name, idx, q){
+        if(q<=0) return;
+        const t=realTargets[idx];
+        t.alloc[name]=(t.alloc[name]||0)+q;
+        offRem[name]-=q;
+        need[idx]-=q;
+        if(need[idx]<0) need[idx]=0;
+        if(offRem[name]<0) offRem[name]=0;
+      }
+
+      // Fase A: argentiere mette le sue off sul suo target finché serve (se ha off)
+      for(let i=0;i<realTargets.length;i++){
+        const t=realTargets[i];
+        if(!t.argentiere) continue;
+        const a=t.argentiere;
+        if((offRem[a]||0)<=0) continue;
+        if(need[i]<=0) continue;
+        const use=Math.min(offRem[a], need[i]);
+        alloc(a,i,use);
+      }
+
+      // Fase B: copri i minimi con tutti (greedy sul primo target con bisogno)
+      let guard=0;
+      while(true){
+        if(guard++>500000) break;
+        // trova primo target ancora sotto
+        let idx=-1;
+        for(let i=0;i<need.length;i++){ if(need[i]>0){ idx=i; break; } }
+        if(idx===-1) break;
+
+        // trova un attaccante con off
+        let chosen=null;
+        for(const a of attaccanti){
+          if((offRem[a.nome]||0)>0){ chosen=a.nome; break; }
+        }
+        if(!chosen) break;
+
+        const use=Math.min(offRem[chosen], need[idx]);
+        alloc(chosen, idx, use);
+      }
+
+      // segna se minimo raggiunto
+      realTargets.forEach((t,i)=>{ t.metMinimo = (need[i]===0); });
+
+      // banner se non arrivano al minimo
+      const under = realTargets
+        .map((t,i)=>({t,i,missing:need[i]}))
+        .filter(x=>x.missing>0)
+        .map(x=>`Target ${x.i+1} (${x.t.tipo.toUpperCase()}): manca ${fmtK(x.missing)} OFF\n${x.t.rawHeader}\n${x.t.link}`);
+
+      if(under.length){
+        showInfo("❌ Alcuni REAL non arrivano al minimo",
+          "OFF totali insufficienti rispetto ai minimi: questi target restano sotto minimo.",
+          under.slice(0,250)
+        );
+      }
+
+      // 3) EXTRA OFF (se richiesto)
+      if(useExtra){
+        // distribuisci tutto il rimanente in modo semplice: prima ai target con argentiere, poi agli altri, in ordine
+        const order = [
+          ...realTargets.map((t,i)=>({t,i})).filter(x=>!!x.t.argentiere),
+          ...realTargets.map((t,i)=>({t,i})).filter(x=>!x.t.argentiere)
+        ];
+
+        for(const a of attaccanti){
+          let left = offRem[a.nome]||0;
+          if(left<=0) continue;
+
+          for(const x of order){
+            if(left<=0) break;
+            // se vuoi extra, mettiamo extra su tutti (non serve un limite)
+            const chunk = left;
+            alloc(a.nome, x.i, chunk);
+            left = offRem[a.nome]||0;
+          }
+        }
+      }
+
+      renderTargets();
+      saveAll();
+    };
+
+    // se più off del minimo, chiedi se usarle
+    if(totalOff > totalMin){
+      showConfirm("OFF in eccesso",
+        `Hai più OFF del minimo totale. Minimo totale: ${fmtK(totalMin)} – OFF totali: ${fmtK(totalOff)}.\nVuoi usare anche le OFF in eccesso (aumentando oltre il minimo)?`,
+        (yes)=>proceedAssign(!!yes)
+      );
+    }else{
+      proceedAssign(false);
+    }
+  });
+
+  // Eliminazione target REAL dopo assegnazione (o anche prima)
+  window.__delRealTarget = (idx)=>{
+    if(!confirm("Eliminare questo target REAL?")) return;
+    realTargets.splice(idx,1);
+    renderTargets();
+    saveAll();
+  };
+
+  // Render targets (REAL e FAKE “come real”, cioè card complete con impatto + link + elenco)
+  function renderTargets(){
+    let h="";
+
+    if(realTargets.length){
+      h += `<h3>✅ REAL</h3>`;
+      realTargets.forEach((t,i)=>{
+        const rows = Object.keys(t.alloc||{}).map(n=>{
+          const isSilver = (t.argentiere===n);
+          // se è argentiere: badge ARGENTO solo qui
+          return `• ${escapeHtml(n)} <b>${fmtK(t.alloc[n])}</b> OFF ${isSilver?'<span class="badge-argento">ARGENTIERE</span>':""}`;
+        }).join("<br>") || "<i style='color:#999'>Nessuna OFF assegnata</i>";
+
+        const minTag = t.metMinimo ? `<span style="color:var(--primary); font-weight:700">✅ OK</span>` : `<span style="color:var(--danger); font-weight:700">❌ Sotto minimo</span>`;
+
+        h += `
+          <div class="card" style="border-left:4px solid var(--primary)">
+            <div class="card-title">
+              <span>${iconTipo(t.tipo)} REAL ${i+1} — ${t.tipo.toUpperCase()}</span>
+              ${minTag}
+            </div>
+            <div class="small" style="margin-bottom:8px">Impatto: <b>${escapeHtml(t.impatto||"")}</b> | Argentiere: <b>${escapeHtml(t.argentiere || "—")}</b></div>
+            
+            <div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-bottom:8px;">
+               <div class="linkline"><b>${escapeHtml(t.rawHeader || (t.tipo+': '+t.nome))}</b></div>
+               <div class="linkline"><a href="${escapeHtml(t.link)}" target="_blank">${escapeHtml(t.link)}</a></div>
+            </div>
+            
+            <hr class="sep">
+            <div style="line-height:1.6">${rows}</div>
+            <hr class="sep">
+            <button class="btn-danger" style="margin-top:0" onclick="window.__delRealTarget(${i})">🗑️ Elimina</button>
+          </div>
+        `;
+      });
+    }
+
+    if(fakeTargets.length){
+      h += `<h3>🎭 FAKE</h3>`;
+      fakeTargets.forEach((t,i)=>{
+        const assigned = (t.assigned||[]).map(n=>`• ${escapeHtml(n)}`).join("<br>") || "<i>Nessun assegnato</i>";
+        // mostra SEMPRE l’impatto fake (e se hai copiato dai real, sarà uguale)
+        h += `
+          <div class="card" style="border-left:4px solid var(--secondary)">
+            <div class="card-title">
+              <span>🎭 FAKE ${i+1} — ${iconTipo(t.tipo)} ${t.tipo.toUpperCase()}</span>
+            </div>
+            <div class="small" style="margin-bottom:8px">Impatto: <b>${escapeHtml(t.impatto||"")}</b></div>
+            
+            <div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-bottom:8px;">
+               <div class="linkline"><b>${escapeHtml(t.rawHeader || (t.tipo+': '+t.nome))}</b></div>
+               <div class="linkline"><a href="${escapeHtml(t.link)}" target="_blank">${escapeHtml(t.link)}</a></div>
+            </div>
+
+            <hr class="sep">
+            <div class="small" style="margin-bottom:4px; font-weight:bold; color:#555">Assegnati (max 5):</div>
+            <div style="line-height:1.6">${assigned}</div>
+          </div>
+        `;
+      });
+    }
+
+    $("listaLink").innerHTML = h || "<div style='text-align:center; padding:20px; color:#999'><i>Nessun target inserito</i></div>";
+  }
+
+  // Export
+  function exportTxt(mode){
+    const per={};
+    const ensure=(n)=>{ per[n]=per[n]||{real:[],fake:[]}; return per[n]; };
+
+    if(mode==="all" || mode==="real"){
+      realTargets.forEach(t=>{
+        // righe off
+        Object.keys(t.alloc||{}).forEach(name=>{
+          ensure(name).real.push({
+            imp:t.impatto,
+            isArgentiere:(t.argentiere===name),
+            off:t.alloc[name],
+            tipo:t.tipo,
+            header:t.rawHeader || `${t.tipo}: ${t.nome}`,
+            link:t.link
+          });
+        });
+        // se argentiere ma 0 off allocata
+        if(t.argentiere && !(t.alloc && Object.prototype.hasOwnProperty.call(t.alloc, t.argentiere))){
+          ensure(t.argentiere).real.push({
+            imp:t.impatto,
+            isArgentiere:true,
+            off:0,
+            tipo:t.tipo,
+            header:t.rawHeader || `${t.tipo}: ${t.nome}`,
+            link:t.link
+          });
+        }
+      });
+    }
+
+    if(mode==="all" || mode==="fake"){
+      fakeTargets.forEach(t=>{
+        (t.assigned||[]).forEach(name=>{
+          ensure(name).fake.push({
+            imp:t.impatto,
+            tipo:t.tipo,
+            header:t.rawHeader || `${t.tipo}: ${t.nome}`,
+            link:t.link
+          });
+        });
+      });
+    }
+
+    const names=Object.keys(per);
+    if(!names.length){ alert("Nessun dato da esportare"); return; }
+
+    let txt="";
+    names.forEach(name=>{
+      txt += `${name}\n`;
+
+      if(mode==="all" || mode==="real"){
+        if(per[name].real.length){
+          txt += `[REAL]\n`;
+          per[name].real.forEach(r=>{
+            txt += `Impatto: ${r.imp}\n`;
+            txt += r.isArgentiere ? `METTI ARGENTO e ${fmtK(r.off)} off\n` : `SUPPORTO ${fmtK(r.off)} off\n`;
+            txt += `${r.tipo.toUpperCase()}\n`;
+            txt += `${r.header}\n`;
+            txt += `${r.link}\n\n`;
+          });
+        }
+      }
+
+      if(mode==="all" || mode==="fake"){
+        if(per[name].fake.length){
+          txt += `[FAKE]\n`;
+          per[name].fake.forEach(r=>{
+            txt += `Impatto: ${r.imp}\n`;
+            txt += `FAKE\n`;
+            txt += `${r.tipo.toUpperCase()}\n`;
+            txt += `${r.header}\n`;
+            txt += `${r.link}\n\n`;
+          });
+        }
+      }
+
+      txt += `----------------------\n\n`;
+    });
+
+    const b=new Blob([txt],{type:"text/plain;charset=utf-8"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download = (mode==="real") ? "coordinato_real.txt" : (mode==="fake") ? "coordinato_fake.txt" : "coordinato_all.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  $("btnExportAll").addEventListener("click", ()=>exportTxt("all"));
+  $("btnExportReal").addEventListener("click", ()=>exportTxt("real"));
+  $("btnExportFake").addEventListener("click", ()=>exportTxt("fake"));
+
+  // Reset
+  $("btnReset").addEventListener("click", ()=>{
+    if(!confirm("Vuoi resettare TUTTO?")) return;
+    attaccanti=[]; realTargets=[]; fakeTargets=[];
+    editingIndex=null;
+    dupInProgress=false; dupLinkTemp=null;
+    try{ localStorage.removeItem(LS); }catch(e){}
+    resetAttForm();
+    renderAttaccanti();
+    renderTargets();
+  });
+
+  // Init
+  loadAll();
+  renderAttaccanti();
+  renderTargets();
+  saveAll();
+})();
+</script>
+
+</body>
+</html>
